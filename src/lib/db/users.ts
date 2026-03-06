@@ -1,17 +1,17 @@
 import { query, DBError } from "./query";
-import { userRowSchema } from "../schemas/users";
-import { InternalServerError, NotFoundError } from "../errors/ApiError";
+import { authenticatedUserSchema, userIdSchema, userRowSchema } from "../schemas/users";
+import { BadRequestError, InternalServerError, NotFoundError } from "../errors/ApiError";
 
 export async function insertUser(data: {
-  first_name: string,
-  last_name: string,
-  email: string,
-  password_hashed: string,
-  registered_at: Date,
-  phone: string | null | undefined,
-  birth_date: Date,
-  is_active: number,
-  is_admin: number
+  first_name: string;
+  last_name: string;
+  email: string;
+  password_hashed: string;
+  registered_at: Date;
+  phone: string | null | undefined;
+  birth_date: Date;
+  is_active: number;
+  is_admin: number;
 }) {
   try {
     const rows = await query<userRowSchema>(
@@ -45,8 +45,8 @@ export async function insertUser(data: {
     );
 
     if (!rows || rows.length === 0) {
-      throw new InternalServerError('User creation failed: no rows returned', {
-        operation: 'insertUser',
+      throw new InternalServerError("User creation failed: no rows returned", {
+        operation: "insertUser",
       });
     }
 
@@ -57,17 +57,85 @@ export async function insertUser(data: {
       throw error;
     }
     // Wrap unexpected errors
-    console.error('Unexpected error in insertUser:', error);
-    throw new InternalServerError('Failed to insert user into database', {
-      operation: 'insertUser',
+    console.error("Unexpected error in insertUser:", error);
+    throw new InternalServerError("Failed to insert user into database", {
+      operation: "insertUser",
+    });
+  }
+}
+
+export async function checkUserExistsByEmail(data: { email: string }) {
+  try {
+    const rows = await query<userRowSchema>(
+      `
+        SELECT id FROM users
+        WHERE
+        email = ?
+      `,
+      [data.email],
+    );
+    if (!rows || rows.length === 0) {
+      throw new NotFoundError("User not found", {
+        operation: "getUser",
+        userEmail: data.email,
+      });
+    }
+
+    return true;
+  } catch (error) {
+    // Re-throw known errors
+    if (error instanceof DBError || error instanceof NotFoundError) {
+      throw error;
+    }
+    // Wrap unexpected errors
+    console.error("Unexpected error in getUser:", error);
+    throw new InternalServerError("Failed to get user from database", {
+      operation: "getUser",
+    });
+  }
+}
+
+export async function authenticateUser(data: {
+  email: string;
+}) {
+  try {
+    const rows = await query<
+      authenticatedUserSchema & { password_hashed: string }
+    >(
+      `
+        SELECT id, first_name, last_name, password_hashed FROM users
+        WHERE
+        email = ?
+      `,
+      [
+        data.email,
+      ],
+    );
+    if (!rows || rows.length === 0) {
+      throw new BadRequestError("Incorrect password", {
+        operation: "authenticateUser",
+        userEmail: data.email,
+      });
+    }
+
+    return rows[0];
+  } catch (error) {
+    // Re-throw known errors
+    if (error instanceof DBError || error instanceof BadRequestError) {
+      throw error;
+    }
+    // Wrap unexpected errors
+    console.error("Unexpected error in authenticateUser:", error);
+    throw new InternalServerError("Failed to authenticate user", {
+      operation: "authenticateUser",
     });
   }
 }
 
 export async function deleteUser(data: {
-  id: number,
-  email: string,
-  password_hashed: string,
+  id: number;
+  email: string;
+  password_hashed: string;
 }) {
   try {
     const rows = await query<userRowSchema>(
@@ -76,16 +144,12 @@ export async function deleteUser(data: {
       WHERE id = ? AND email = ? and password_hashed = ?
       RETURNING *
       `,
-      [
-        data.id,
-        data.email,
-        data.password_hashed,
-      ],
+      [data.id, data.email, data.password_hashed],
     );
 
     if (!rows || rows.length === 0) {
-      throw new NotFoundError('User not found or credentials do not match', {
-        operation: 'deleteUser',
+      throw new NotFoundError("User not found or credentials do not match", {
+        operation: "deleteUser",
         userId: data.id,
       });
     }
@@ -97,9 +161,9 @@ export async function deleteUser(data: {
       throw error;
     }
     // Wrap unexpected errors
-    console.error('Unexpected error in deleteUser:', error);
-    throw new InternalServerError('Failed to delete user from database', {
-      operation: 'deleteUser',
+    console.error("Unexpected error in deleteUser:", error);
+    throw new InternalServerError("Failed to delete user from database", {
+      operation: "deleteUser",
     });
   }
 }

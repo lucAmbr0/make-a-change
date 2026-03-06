@@ -13,7 +13,6 @@ export function signToken(
 
 interface JWTPayload {
   userId: number;
-  role: "user" | "admin";
 }
 
 export function verifyToken(token: string): JWTPayload | null {

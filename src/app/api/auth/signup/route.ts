@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createUserInput } from "@/lib/schemas/users"
+import { createUserInput, userRowSchema } from "@/lib/schemas/users"
 import { createUser } from "@/lib/services/userService"
 import { ApiError, ValidationError, InternalServerError } from "@/lib/errors/ApiError"
 import { ZodError } from "zod"
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create user
-    const user = await createUser(input);
+    const user : userRowSchema = await createUser(input);
 
     // Return success response with 201 Created
     return NextResponse.json(
