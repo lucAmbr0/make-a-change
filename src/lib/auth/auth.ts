@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
+import { ApiError, BadRequestError, UnauthorizedError } from "../errors/ApiError";
 
 const JWT_SECRET = process.env.JWT_SECRET || "ASSIGN_JWT_SECRET";
 const COOKIE_NAME = "session_token";
@@ -111,8 +112,8 @@ export function getTokenFromRequest(req: NextRequest | any) {
 
 export function requireAuth(req: NextRequest | any) {
   const token = getTokenFromRequest(req);
-  if (!token) throw new Error("Unauthorized");
+  if (!token) throw new UnauthorizedError("No authentication token provided");
   const payload = verifyToken(token);
-  if (!payload) throw new Error("Invalid token");
+  if (!payload) throw new UnauthorizedError("Invalid or expired token");
   return payload;
 }

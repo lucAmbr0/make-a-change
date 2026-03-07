@@ -1,6 +1,6 @@
 import { query, DBError } from "./query";
 import { authenticatedUserSchema, userIdSchema, userRowSchema } from "../schemas/users";
-import { BadRequestError, InternalServerError, NotFoundError } from "../errors/ApiError";
+import { InternalServerError, NotFoundError } from "../errors/ApiError";
 
 export async function insertUser(data: {
   first_name: string;
@@ -106,7 +106,7 @@ export async function getUserById(data: {
       ],
     );
     if (!rows || rows.length === 0) {
-      throw new BadRequestError("User not found", {
+      throw new NotFoundError("User not found", {
         operation: "getUser",
         userId: data.userId,
       });
@@ -114,7 +114,7 @@ export async function getUserById(data: {
 
     return rows[0];
   } catch (error) {
-    if (error instanceof DBError || error instanceof BadRequestError) {
+    if (error instanceof DBError || error instanceof NotFoundError) {
       throw error;
     }
     console.error("Unexpected error in getUserById:", error);
@@ -140,7 +140,7 @@ export async function getUserByEmail(data: {
       ],
     );
     if (!rows || rows.length === 0) {
-      throw new BadRequestError("User not found", {
+      throw new NotFoundError("User not found", {
         operation: "getUser",
         userEmail: data.email,
       });
@@ -148,7 +148,7 @@ export async function getUserByEmail(data: {
 
     return rows[0];
   } catch (error) {
-    if (error instanceof DBError || error instanceof BadRequestError) {
+    if (error instanceof DBError || error instanceof NotFoundError) {
       throw error;
     }
     console.error("Unexpected error in getUserByEmail:", error);

@@ -11,6 +11,7 @@ import {
   InternalServerError,
   BadRequestError,
   NotFoundError,
+  UnauthorizedError,
 } from "../errors/ApiError";
 import { DBError } from "../db/query";
 import { signToken } from "../auth/auth";
@@ -75,6 +76,10 @@ export async function createUser(input: createUserInput) {
 export async function getUserBySession(req: NextRequest) {
   const auth = requireAuth(req);
 
+  if (!auth || !auth.userId) {
+    throw new BadRequestError("Invalid session");
+  }
+
   const fullUser = await getUserById(auth);
 
   const user: publicUserRowSchema = {
@@ -100,7 +105,7 @@ export async function loginUser(input: userAuthenticationInput) {
   );
 
   if (!passwordMatches) {
-    throw new NotFoundError("Invalid credentials");
+    throw new UnauthorizedError("Invalid credentials");
   }
 
   const token = signToken({ userId: user.id });

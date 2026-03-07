@@ -73,6 +73,15 @@ export class ServiceUnavailableError extends ApiError {
 }
 
 /**
+ * 401 Unauthorized - Authentication required or failed
+ */
+export class UnauthorizedError extends ApiError {
+  constructor(message: string = 'Unauthorized', details?: any) {
+    super(401, message, 'UNAUTHORIZED', details);
+  }
+}
+
+/**
  * 404 Not Found
  */
 export class NotFoundError extends ApiError {
