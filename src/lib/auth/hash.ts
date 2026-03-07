@@ -37,7 +37,6 @@ export async function hashPassword(password: string): Promise<string> {
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
   if (!hash || !password) return false;
 
-  // Validate inputs
   if (typeof password !== 'string' || typeof hash !== 'string') {
     return false;
   }
@@ -46,7 +45,6 @@ export async function comparePassword(password: string, hash: string): Promise<b
     return await bcrypt.compare(password, hash);
   } catch (error) {
     console.error('Bcrypt comparison error:', error);
-    // Don't throw error, just return false for security
     return false;
   }
 }

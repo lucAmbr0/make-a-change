@@ -52,11 +52,9 @@ export async function insertUser(data: {
 
     return rows[0];
   } catch (error) {
-    // Re-throw DBError to be handled by the service layer
     if (error instanceof DBError) {
       throw error;
     }
-    // Wrap unexpected errors
     console.error("Unexpected error in insertUser:", error);
     throw new InternalServerError("Failed to insert user into database", {
       operation: "insertUser",
@@ -83,11 +81,9 @@ export async function checkUserExistsByEmail(data: { email: string }) {
 
     return true;
   } catch (error) {
-    // Re-throw known errors
     if (error instanceof DBError || error instanceof NotFoundError) {
       throw error;
     }
-    // Wrap unexpected errors
     console.error("Unexpected error in getUser:", error);
     throw new InternalServerError("Failed to get user from database", {
       operation: "getUser",
@@ -95,7 +91,39 @@ export async function checkUserExistsByEmail(data: { email: string }) {
   }
 }
 
-export async function authenticateUser(data: {
+export async function getUserById(data: {
+  userId: number;
+}) {
+  try {
+    const rows = await query<userRowSchema>(
+      `
+        SELECT * FROM users
+        WHERE
+        id = ?
+      `,
+      [
+        data.userId,
+      ],
+    );
+    if (!rows || rows.length === 0) {
+      throw new BadRequestError("User not found", {
+        operation: "getUser",
+        userId: data.userId,
+      });
+    }
+
+    return rows[0];
+  } catch (error) {
+    if (error instanceof DBError || error instanceof BadRequestError) {
+      throw error;
+    }
+    console.error("Unexpected error in getUserById:", error);
+    throw new InternalServerError("Failed to get user", {
+      operation: "getUserById",
+    });
+  }
+}
+export async function getUserByEmail(data: {
   email: string;
 }) {
   try {
@@ -112,22 +140,20 @@ export async function authenticateUser(data: {
       ],
     );
     if (!rows || rows.length === 0) {
-      throw new BadRequestError("Incorrect password", {
-        operation: "authenticateUser",
+      throw new BadRequestError("User not found", {
+        operation: "getUser",
         userEmail: data.email,
       });
     }
 
     return rows[0];
   } catch (error) {
-    // Re-throw known errors
     if (error instanceof DBError || error instanceof BadRequestError) {
       throw error;
     }
-    // Wrap unexpected errors
-    console.error("Unexpected error in authenticateUser:", error);
-    throw new InternalServerError("Failed to authenticate user", {
-      operation: "authenticateUser",
+    console.error("Unexpected error in getUserByEmail:", error);
+    throw new InternalServerError("Failed to get user", {
+      operation: "getUserByEmail",
     });
   }
 }
@@ -156,11 +182,9 @@ export async function deleteUser(data: {
 
     return rows[0];
   } catch (error) {
-    // Re-throw known errors
     if (error instanceof DBError || error instanceof NotFoundError) {
       throw error;
     }
-    // Wrap unexpected errors
     console.error("Unexpected error in deleteUser:", error);
     throw new InternalServerError("Failed to delete user from database", {
       operation: "deleteUser",

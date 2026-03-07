@@ -6,24 +6,6 @@ import { setSessionCookie } from "@/lib/auth/auth"
 import { ApiError, ValidationError, InternalServerError } from "@/lib/errors/ApiError"
 import { ZodError } from "zod"
 
-function getCorsHeaders(req?: NextRequest) {
-  const origin = req?.headers.get("origin") ?? "http://localhost:3000";
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
-    "Vary": "Origin",
-  };
-}
-
-export async function OPTIONS(req: NextRequest) {
-  return new NextResponse(null, {
-    status: 204,
-    headers: getCorsHeaders(req),
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
     let body: any;
@@ -55,10 +37,6 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({
       id: user.id,
-      first_name: user.first_name,
-      last_name: user.last_name,
-    }, {
-      headers: getCorsHeaders(req),
     });
 
     if (user.session_token) {

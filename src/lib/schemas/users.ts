@@ -15,6 +15,17 @@ export const userRowSchema = zod.object({
 
 export type userRowSchema = zod.infer<typeof userRowSchema>;
 
+export const publicUserRowSchema = zod.object({
+  id: zod.number().int(),
+  first_name: zod.string().max(32),
+  last_name: zod.string().max(32),
+  email: zod.email().max(256),
+  phone: zod.string().max(32).nullable().optional(),
+  birth_date: zod.date(),
+});
+
+export type publicUserRowSchema = zod.infer<typeof publicUserRowSchema>;
+
 export const userAuthenticationInput = zod.object({
   email: zod
     .email("Invalid credentials")

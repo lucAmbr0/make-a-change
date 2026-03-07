@@ -1,6 +1,11 @@
 import { comparePassword, hashPassword } from "../auth/hash";
-import { insertUser, authenticateUser as authenticateUser } from "../db/users";
-import { createUserInput, userAuthenticationInput } from "../schemas/users";
+import { insertUser, getUserByEmail, getUserById } from "../db/users";
+import {
+  createUserInput,
+  publicUserRowSchema,
+  userAuthenticationInput,
+} from "../schemas/users";
+import { requireAuth } from "../auth/auth";
 import {
   ConflictError,
   InternalServerError,
@@ -9,6 +14,7 @@ import {
 } from "../errors/ApiError";
 import { DBError } from "../db/query";
 import { signToken } from "../auth/auth";
+import { NextRequest } from "next/server";
 
 export async function createUser(input: createUserInput) {
   let password_hashed: string;
@@ -66,28 +72,45 @@ export async function createUser(input: createUserInput) {
   }
 }
 
+export async function getUserBySession(req: NextRequest) {
+  const auth = requireAuth(req);
+
+  const fullUser = await getUserById(auth);
+
+  const user: publicUserRowSchema = {
+    id: fullUser.id,
+    first_name: fullUser.first_name,
+    last_name: fullUser.last_name,
+    email: fullUser.email,
+    phone: fullUser.phone,
+    birth_date: fullUser.birth_date
+  };
+
+  return user;
+}
+
 export async function loginUser(input: userAuthenticationInput) {
-  const authenticatedUser = await authenticateUser({
+  const user = await getUserByEmail({
     email: input.email,
   });
 
   const passwordMatches = await comparePassword(
     input.password,
-    authenticatedUser.password_hashed,
+    user.password_hashed,
   );
 
   if (!passwordMatches) {
     throw new NotFoundError("Invalid credentials");
   }
 
-  const token = signToken({ userId: authenticatedUser.id });
+  const token = signToken({ userId: user.id });
 
-  if (!token) throw new InternalServerError("Error signing token")
+  if (!token) throw new InternalServerError("Error signing token");
 
   return {
-    id: authenticatedUser.id,
-    first_name: authenticatedUser.first_name,
-    last_name: authenticatedUser.last_name,
+    id: user.id,
+    first_name: user.first_name,
+    last_name: user.last_name,
     session_token: token,
   };
 }
