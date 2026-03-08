@@ -8,6 +8,9 @@ import {
   organizationRowSchema,
 } from "../schemas/organization";
 import { getOrganizationsNames, insertOrganization } from "../db/organizations";
+import { insertMember } from "../db/members";
+import { addMember } from "./memberService";
+import { memberRowSchema } from "../schemas/members";
 
 export async function createOrganization(req: NextRequest) {
   const auth = requireAuth(req);
@@ -42,7 +45,8 @@ export async function createOrganization(req: NextRequest) {
 
   const creation_date = new Date();
 
-  const campaign: organizationRowSchema = await insertOrganization({
+  // Create organization
+  const organization: organizationRowSchema = await insertOrganization({
     creator_id: auth.userId,
     name: input.name,
     description: input.description || null,
@@ -52,7 +56,15 @@ export async function createOrganization(req: NextRequest) {
     requires_approval: input.requires_approval,
   });
 
-  return campaign;
+  // Once organization is created, add the creator as member and owner
+  const member : memberRowSchema = await insertMember({
+    user_id: auth.userId,
+    organization_id: organization.id,
+    is_moderator: true,
+    is_owner: true
+  });
+
+  return organization;
 }
 
 async function organizationNamesExists(name: string) {
