@@ -56,7 +56,7 @@ export type createOrganizationInput = zod.infer<typeof createOrganizationInput>;
 export const organizationNameSchema = zod.object({
   name: zod
     .string({ message: "Name must be a string" })
-    .max(64, "Name cannot exceed 64 characters")
+    .max(64, "Name cannot exceed 64 characters"),
 });
 
 export type organizationNameSchema = zod.infer<typeof organizationNameSchema>;

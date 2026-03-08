@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         organization_id: member.organization_id,
         user_id: member.user_id,
         is_moderator: member.is_moderator,
-        is_owner: member.is_owner
+        is_owner: member.is_owner,
       },
       { status: 201 },
     );

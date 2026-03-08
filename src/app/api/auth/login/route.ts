@@ -1,10 +1,14 @@
-import { NextRequest, NextResponse } from "next/server"
-import { userAuthenticationInput } from "@/lib/schemas/users"
-import type { authenticatedUserSchema } from "@/lib/schemas/users"
-import { loginUser } from "@/lib/services/userService"
-import { setSessionCookie } from "@/lib/auth/auth"
-import { ApiError, ValidationError, InternalServerError } from "@/lib/errors/ApiError"
-import { ZodError } from "zod"
+import { NextRequest, NextResponse } from "next/server";
+import { userAuthenticationInput } from "@/lib/schemas/users";
+import type { authenticatedUserSchema } from "@/lib/schemas/users";
+import { loginUser } from "@/lib/services/userService";
+import { setSessionCookie } from "@/lib/auth/auth";
+import {
+  ApiError,
+  ValidationError,
+  InternalServerError,
+} from "@/lib/errors/ApiError";
+import { ZodError } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,8 +16,8 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch (error) {
-      throw new ValidationError('Invalid JSON in request body', {
-        error: 'Request body must be valid JSON',
+      throw new ValidationError("Invalid JSON in request body", {
+        error: "Request body must be valid JSON",
       });
     }
 
@@ -22,9 +26,9 @@ export async function POST(req: NextRequest) {
       input = userAuthenticationInput.parse(body);
     } catch (error) {
       if (error instanceof ZodError) {
-        throw new ValidationError('Validation failed', {
+        throw new ValidationError("Validation failed", {
           errors: error.issues.map((err: any) => ({
-            field: err.path.join('.'),
+            field: err.path.join("."),
             message: err.message,
             code: err.code,
           })),
@@ -33,7 +37,7 @@ export async function POST(req: NextRequest) {
       throw error;
     }
 
-    const user : authenticatedUserSchema = await loginUser(input);
+    const user: authenticatedUserSchema = await loginUser(input);
 
     const response = NextResponse.json({
       id: user.id,
@@ -51,9 +55,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Handle unexpected errors
-    console.error('Unexpected error in login route:', error);
+    console.error("Unexpected error in login route:", error);
     const internalError = new InternalServerError(
-      'An unexpected error occurred during user login'
+      "An unexpected error occurred during user login",
     );
     return NextResponse.json(internalError.toJSON(), { status: 500 });
   }

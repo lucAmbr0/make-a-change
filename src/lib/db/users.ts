@@ -1,5 +1,5 @@
 import { query, DBError } from "./query";
-import { authenticatedUserSchema, userIdSchema, userRowSchema } from "../schemas/users";
+import { authenticatedUserSchema, userRowSchema } from "../schemas/users";
 import { InternalServerError, NotFoundError } from "../errors/ApiError";
 
 export async function insertUser(data: {
@@ -91,9 +91,7 @@ export async function checkUserExistsByEmail(data: { email: string }) {
   }
 }
 
-export async function getUserById(data: {
-  userId: number;
-}) {
+export async function getUserById(data: { userId: number }) {
   try {
     const rows = await query<userRowSchema>(
       `
@@ -101,9 +99,7 @@ export async function getUserById(data: {
         WHERE
         id = ?
       `,
-      [
-        data.userId,
-      ],
+      [data.userId],
     );
     if (!rows || rows.length === 0) {
       throw new NotFoundError("User not found", {
@@ -123,9 +119,7 @@ export async function getUserById(data: {
     });
   }
 }
-export async function getUserByEmail(data: {
-  email: string;
-}) {
+export async function getUserByEmail(data: { email: string }) {
   try {
     const rows = await query<
       authenticatedUserSchema & { password_hashed: string }
@@ -135,9 +129,7 @@ export async function getUserByEmail(data: {
         WHERE
         email = ?
       `,
-      [
-        data.email,
-      ],
+      [data.email],
     );
     if (!rows || rows.length === 0) {
       throw new NotFoundError("User not found", {

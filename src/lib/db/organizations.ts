@@ -1,6 +1,9 @@
 import { query, DBError } from "../db/query";
 import { InternalServerError } from "../errors/ApiError";
-import { organizationNameSchema, organizationRowSchema } from "../schemas/organization";
+import {
+  organizationNameSchema,
+  organizationRowSchema,
+} from "../schemas/organization";
 
 export async function insertOrganization(data: {
   creator_id: number;
@@ -75,7 +78,7 @@ export async function getOrganizationsNames() {
     const rows = await query<organizationNameSchema>(
       `
         SELECT name FROM organizations;
-      `
+      `,
     );
 
     // if (!rows || rows.length === 0) {

@@ -57,11 +57,11 @@ export async function createOrganization(req: NextRequest) {
   });
 
   // Once organization is created, add the creator as member and owner
-  const member : memberRowSchema = await insertMember({
+  const member: memberRowSchema = await insertMember({
     user_id: auth.userId,
     organization_id: organization.id,
     is_moderator: true,
-    is_owner: true
+    is_owner: true,
   });
 
   return organization;
