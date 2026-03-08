@@ -5,7 +5,7 @@ import { ApiError, InternalServerError } from "@/lib/errors/ApiError";
 
 // Get Campaign list
 export async function GET(req: NextRequest) {
-    // todo
+  // todo
 }
 
 // Campaign Creation
@@ -17,18 +17,15 @@ export async function POST(req: NextRequest) {
     // Return success response with 201 Created
     return NextResponse.json(
       {
-        success: true,
-        data: {
-          id: campaign.id,
-          title: campaign.title,
-          description: campaign.description,
-          cover_path: campaign.cover_path,
-          signature_goal: campaign.signature_goal,
-          is_public: campaign.is_public,
-          comments_active: campaign.comments_active,
-          comments_require_approval: campaign.comments_require_approval,
-          created_at: campaign.created_at,
-        },
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        cover_path: campaign.cover_path,
+        signature_goal: campaign.signature_goal,
+        is_public: campaign.is_public,
+        comments_active: campaign.comments_active,
+        comments_require_approval: campaign.comments_require_approval,
+        created_at: campaign.created_at,
       },
       { status: 201 },
     );
