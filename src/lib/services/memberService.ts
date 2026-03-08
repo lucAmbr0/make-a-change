@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireAuth } from "../auth/auth";
 import { ValidationError } from "../errors/ApiError";
-import { insertMember } from "../db/members";
+import { insertMember, searchMemberOfOrganization } from "../db/members";
 import { ZodError } from "zod";
 import { createMemberInput, memberRowSchema } from "../schemas/members";
 
@@ -42,4 +42,26 @@ export async function addMember(req: NextRequest) {
   });
 
   return member;
+}
+
+export async function getMember(userId: number, organizationId: number) {
+  const member: memberRowSchema | null = await searchMemberOfOrganization({
+    organization_id: organizationId,
+    user_id: userId,
+  });
+
+  if (!member) return null;
+
+  return member;
+}
+
+export async function isMember(userId: number, organizationId: number) {
+  const member: memberRowSchema | null = await searchMemberOfOrganization({
+    organization_id: organizationId,
+    user_id: userId,
+  });
+
+  if (!member) return false;
+
+  return true;
 }

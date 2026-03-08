@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 import { requireAuth } from "../auth/auth";
-import { ValidationError } from "../errors/ApiError";
+import { UnauthorizedError, ValidationError } from "../errors/ApiError";
 import { campaignRowSchema, createCampaignInput } from "../schemas/campaigns";
 import { insertCampaign } from "../db/campaigns";
 import { ZodError } from "zod";
+import { isMember } from "./memberService";
 
 export async function createCampaign(req: NextRequest) {
   const auth = requireAuth(req);
@@ -35,17 +36,14 @@ export async function createCampaign(req: NextRequest) {
   }
 
   // Validate organization membership if organization_id is provided
-  //   if (input.organization_id) {
-  //     const isMember = await checkUserOrganizationMembership(
-  //       auth.userId,
-  //       input.organization_id,
-  //     );
-  //     if (!isMember) {
-  //       throw new UnauthorizedError(
-  //         "You do not have permission to create a campaign for this organization",
-  //       );
-  //     }
-  //   }
+  if (input.organization_id) {
+    const member = await isMember(auth.userId, input.organization_id);
+    if (!member) {
+      throw new UnauthorizedError(
+        "Can't create a campaign inside an organization you're not a member of",
+      );
+    }
+  }
 
   const creation_date = new Date();
 
