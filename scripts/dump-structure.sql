@@ -73,7 +73,7 @@ CREATE TABLE `campaigns` (
   KEY `organization_id` (`organization_id`),
   CONSTRAINT `campaign_creator_fk` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`),
   CONSTRAINT `campaign_org_fk` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -143,8 +143,8 @@ DROP TABLE IF EXISTS `members`;
 CREATE TABLE `members` (
   `organization_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `is_moderator` tinyint(1) NOT NULL DEFAULT 0,
-  `is_owner` tinyint(1) NOT NULL DEFAULT 0,
+  `is_moderator` tinyint(1) DEFAULT 0,
+  `is_owner` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`organization_id`,`user_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `member_org_fk` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`),
@@ -196,7 +196,7 @@ CREATE TABLE `organizations` (
   PRIMARY KEY (`id`),
   KEY `creator_id` (`creator_id`),
   CONSTRAINT `org_creator_fk` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -240,7 +240,7 @@ CREATE TABLE `users` (
   `is_admin` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -256,4 +256,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-03-06 18:31:29
+-- Dump completed on 2026-03-09 22:34:49
