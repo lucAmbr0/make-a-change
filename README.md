@@ -7,6 +7,8 @@
 ![Status](https://img.shields.io/badge/status-in%20development-orange)
 ![License](https://img.shields.io/badge/license-GNU%20GPL%20v3.0-yellow)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y71DD2GE)
+
 Your ideas matter. Make A Change.
 
 **Make-A-Change** is a civic engagement platform that allows people to create, support, and spread proposals for change.  

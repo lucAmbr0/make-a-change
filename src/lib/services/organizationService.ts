@@ -1,13 +1,17 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
-import { requireAuth } from "../auth/auth";
+import { getTokenFromRequest, requireAuth } from "../auth/auth";
 import { ValidationError } from "../errors/ApiError";
 import {
   createOrganizationInput,
   organizationNameSchema,
   organizationRowSchema,
 } from "../schemas/organization";
-import { getOrganizationsNames, insertOrganization } from "../db/organizations";
+import {
+  getOrganizationsForUser,
+  getOrganizationsNames,
+  insertOrganization,
+} from "../db/organizations";
 import { insertMember } from "../db/members";
 import { addMember } from "./memberService";
 import { memberRowSchema } from "../schemas/members";
@@ -77,4 +81,12 @@ async function organizationNamesExists(name: string) {
     });
   }
   return false;
+}
+
+export async function getAuthorizedOrganizations(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  let organizations: organizationRowSchema[];
+  organizations = await getOrganizationsForUser({ user_id: auth.userId });
+  return organizations;
 }

@@ -1,11 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { organizationRowSchema } from "@/lib/schemas/organization";
 import { ApiError, InternalServerError } from "@/lib/errors/ApiError";
-import { createOrganization } from "@/lib/services/organizationService";
+import {
+  createOrganization,
+  getAuthorizedOrganizations,
+} from "@/lib/services/organizationService";
 
 // Get Organizations list
 export async function GET(req: NextRequest) {
-  // todo
+  try {
+    const organizations: organizationRowSchema[] =
+      await getAuthorizedOrganizations(req);
+    return NextResponse.json(
+      organizations.map((o: organizationRowSchema) => {
+        return {
+          id: o.id,
+          name: o.name,
+          description: o.description,
+          cover_path: o.cover_path,
+          created_at: o.created_at,
+          is_public: o.is_public,
+          requires_approval: o.requires_approval,
+        };
+      }),
+      { status: 200 },
+    );
+  } catch (error) {
+    // Handle known API errors
+    if (error instanceof ApiError) {
+      return NextResponse.json(error.toJSON(), { status: error.statusCode });
+    }
+
+    // Handle unexpected errors
+    console.error("Unexpected error in organization list route:", error);
+    const internalError = new InternalServerError(
+      "An unexpected error occurred during organization list",
+    );
+    return NextResponse.json(internalError.toJSON(), { status: 500 });
+  }
 }
 
 // Organization Creation

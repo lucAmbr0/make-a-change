@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import { requireAuth } from "../auth/auth";
+import { getTokenFromRequest, requireAuth } from "../auth/auth";
 import { UnauthorizedError, ValidationError } from "../errors/ApiError";
 import { campaignRowSchema, createCampaignInput } from "../schemas/campaigns";
-import { insertCampaign } from "../db/campaigns";
+import { getCampaignsForUser, insertCampaign } from "../db/campaigns";
 import { ZodError } from "zod";
 import { isMember } from "./memberService";
 
@@ -61,4 +61,12 @@ export async function createCampaign(req: NextRequest) {
   });
 
   return campaign;
+}
+
+export async function getAuthorizedCampaings(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  let campaigns: campaignRowSchema[];
+  campaigns = await getCampaignsForUser({ user_id: auth.userId });
+  return campaigns;
 }
