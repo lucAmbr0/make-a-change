@@ -11,7 +11,7 @@ INSERT INTO `users` (id, first_name, last_name, email, password_hashed, register
 (3,'Carol','Taylor','carol3@example.com','Password3','2026-03-03 10:10:00',NULL,'1992-03-03',1,0),
 (4,'Dave','Brown','dave4@example.com','Password4','2026-03-03 10:15:00',NULL,'1993-04-04',1,0),
 (5,'Eve','Davis','eve5@example.com','Password5','2026-03-03 10:20:00',NULL,'1994-05-05',1,0),
-(6,'Frank','Wilson','frank6@example.com','Password6','20263-03-03 10:25:00',NULL,'1995-06-06',1,0),
+(6,'Frank','Wilson','frank6@example.com','Password6','2026-03-03 10:25:00',NULL,'1995-06-06',1,0),
 (7,'Grace','Lee','grace7@example.com','Password7','2026-03-03 10:30:00',NULL,'1996-07-07',1,0),
 (8,'Heidi','King','heidi8@example.com','Password8','2026-03-03 10:35:00',NULL,'1997-08-08',1,0),
 (9,'Ivan','Young','ivan9@example.com','Password9','2026-03-03 10:40:00',NULL,'1998-09-09',1,0),
