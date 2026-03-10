@@ -46,3 +46,9 @@ export const createCampaignInput = zod.object({
 });
 
 export type createCampaignInput = zod.infer<typeof createCampaignInput>;
+
+export const campaignIdRowSchema = zod.object({
+  id: zod.number().int(),
+});
+
+export type campaignIdRowSchema = zod.infer<typeof campaignIdRowSchema>;

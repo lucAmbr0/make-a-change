@@ -111,3 +111,80 @@ export async function getCampaignsForUser(data: { user_id: number | null}) {
     });
   }
 }
+
+export async function checkDeleteCampaignPrivileges(data: {
+  user_id: number,
+  campaign_id: number
+}) {
+  try {
+    const rows = await query<campaignRowSchema>(
+      `
+        SELECT * FROM campaigns as c
+        WHERE
+        id = ?
+        AND
+        creator_id = ?
+      `,
+      [
+        data.campaign_id,
+        data.user_id
+      ],
+    );
+
+    if (rows.length > 0)
+      return true;
+    else return false;
+    
+  } catch (error) {
+    if (error instanceof DBError) {
+      // Translate DB errors to meaningful API errors
+      console.error("Database error in getCampaignsForUser:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaignsForUser",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsForUser:", error);
+    throw new InternalServerError("Failed to retrieve campaigns from database", {
+      operation: "getCampaignsForUser",
+    });
+  }  
+}
+
+export async function deleteCampaign(data: {
+  id: number
+}) {
+  try {
+    const result = await query<campaignRowSchema>(
+      `
+      DELETE FROM campaigns
+      WHERE id = ?
+      `,
+      [
+      data.id
+      ],
+    );
+
+    console.log(result)
+    return result;
+  } catch (error) {
+    if (error instanceof DBError) {
+      // Translate DB errors to meaningful API errors
+      console.error("Database error in deleteCampaign:", error);
+      throw new InternalServerError(
+        "Failed to delete campaign. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "deleteCampaign",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in deleteCampaign:", error);
+    throw new InternalServerError("Failed to delete campaign from database", {
+      operation: "deleteCampaign",
+    });
+  }
+}

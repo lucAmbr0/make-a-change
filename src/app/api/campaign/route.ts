@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { campaignRowSchema } from "@/lib/schemas/campaigns";
 import {
+  authDeleteCampaign,
   createCampaign,
   getAuthorizedCampaings,
 } from "@/lib/services/campaignService";
@@ -77,4 +78,29 @@ export async function POST(req: NextRequest) {
     );
     return NextResponse.json(internalError.toJSON(), { status: 500 });
   }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    // Delete campaign
+    const result = await authDeleteCampaign(req);
+
+    // Return success response with 201 Created
+    return NextResponse.json(
+      result,
+      { status: 204 },
+    );
+  } catch (error) {
+    // Handle known API errors
+    if (error instanceof ApiError) {
+      return NextResponse.json(error.toJSON(), { status: error.statusCode });
+    }
+
+    // Handle unexpected errors
+    console.error("Unexpected error in campaign deletion route:", error);
+    const internalError = new InternalServerError(
+      "An unexpected error occurred during campaign deletion",
+    );
+    return NextResponse.json(internalError.toJSON(), { status: 500 });
+  }  
 }

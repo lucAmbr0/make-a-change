@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { getTokenFromRequest, requireAuth } from "../auth/auth";
 import { UnauthorizedError, ValidationError } from "../errors/ApiError";
-import { campaignRowSchema, createCampaignInput } from "../schemas/campaigns";
-import { getCampaignsForUser, insertCampaign } from "../db/campaigns";
+import { campaignIdRowSchema, campaignRowSchema, createCampaignInput } from "../schemas/campaigns";
+import { checkDeleteCampaignPrivileges, deleteCampaign, getCampaignsForUser, insertCampaign } from "../db/campaigns";
 import { ZodError } from "zod";
 import { isMember } from "./memberService";
 
@@ -69,4 +69,41 @@ export async function getAuthorizedCampaings(req: NextRequest) {
   let campaigns: campaignRowSchema[];
   campaigns = await getCampaignsForUser({ user_id: auth.userId });
   return campaigns;
+}
+
+export async function authDeleteCampaign(req: NextRequest) {
+  const auth = requireAuth(req);
+
+  let body: any;
+  try {
+    body = await req.json();
+  } catch (error) {
+    throw new ValidationError("Invalid JSON in request body", {
+      error: "Request body must be valid JSON",
+    });
+  }
+
+  // Validate input against schema
+  let input;
+  try {
+    input = campaignIdRowSchema.parse(body);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new ValidationError("Validation failed", {
+        errors: error.issues.map((err: any) => ({
+          field: err.path.join("."),
+          message: err.message,
+          code: err.code,
+        })),
+      });
+    }
+    throw error;
+  }
+
+  let result : unknown = null;
+  if (await checkDeleteCampaignPrivileges({ user_id: auth.userId, campaign_id: input.id }))
+    result = await deleteCampaign({ id: input.id });
+  else throw new UnauthorizedError("Cannot delete campaign you're not an owner of.")
+
+  return result;
 }
