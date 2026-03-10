@@ -1,4 +1,4 @@
-import zod from "zod";
+import zod, { number } from "zod";
 
 export const campaignRowSchema = zod.object({
   id: zod.number().int(),

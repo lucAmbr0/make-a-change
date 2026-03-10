@@ -1,5 +1,6 @@
 import { InternalServerError } from "../errors/ApiError";
 import { campaignRowSchema } from "../schemas/campaigns";
+import { deleteResultRow } from "../schemas/db";
 import { DBError, query } from "./query";
 
 export async function insertCampaign(data: {
@@ -76,7 +77,7 @@ export async function insertCampaign(data: {
   }
 }
 
-export async function getCampaignsForUser(data: { user_id: number | null}) {
+export async function getCampaignsForUser(data: { user_id: number | null }) {
   try {
     const rows = await query<campaignRowSchema>(
       `
@@ -134,7 +135,7 @@ export async function checkDeleteCampaignPrivileges(data: {
     if (rows.length > 0)
       return true;
     else return false;
-    
+
   } catch (error) {
     if (error instanceof DBError) {
       // Translate DB errors to meaningful API errors
@@ -151,35 +152,83 @@ export async function checkDeleteCampaignPrivileges(data: {
     throw new InternalServerError("Failed to retrieve campaigns from database", {
       operation: "getCampaignsForUser",
     });
-  }  
+  }
+}
+
+export async function campaignExists(data: {
+  campaign_id: number
+}) {
+  try {
+    const rows = await query<campaignRowSchema>(
+      `
+        SELECT id FROM campaigns
+        WHERE id = ?
+      `,
+      [data.campaign_id],
+    );
+
+    return rows.length > 0;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in campaignExists:", error);
+      throw new InternalServerError(
+        "Failed to check campaign.",
+        { operation: "campaignExists", dbCode: error.code },
+      );
+    }
+    console.error("Unexpected error in campaignExists:", error);
+    throw new InternalServerError("Failed to check campaign from database", {
+      operation: "campaignExists",
+    });
+  }
 }
 
 export async function deleteCampaign(data: {
   id: number
 }) {
   try {
-    const result = await query<campaignRowSchema>(
+    // First delete dependent records
+    await query(
+      `
+      DELETE FROM favorites
+      WHERE campaign_id = ?
+      `,
+      [data.id],
+    );
+
+    await query(
+      `
+      DELETE FROM comments
+      WHERE campaign_id = ?
+      `,
+      [data.id],
+    );
+
+    await query(
+      `
+      DELETE FROM signatures
+      WHERE campaign_id = ?
+      `,
+      [data.id],
+    );
+
+    // Delete the campaign and get the result to check if it existed
+    const result = await query<any>(
       `
       DELETE FROM campaigns
       WHERE id = ?
       `,
-      [
-      data.id
-      ],
+      [data.id],
     );
 
-    console.log(result)
-    return result;
+    // Return true if a campaign was deleted, false if it didn't exist
+    return result.length > 0;
   } catch (error) {
     if (error instanceof DBError) {
-      // Translate DB errors to meaningful API errors
       console.error("Database error in deleteCampaign:", error);
       throw new InternalServerError(
-        "Failed to delete campaign. Please ensure all provided organization and campaign data are valid.",
-        {
-          operation: "deleteCampaign",
-          dbCode: error.code,
-        },
+        "Failed to delete campaign.",
+        { operation: "deleteCampaign", dbCode: error.code },
       );
     }
     console.error("Unexpected error in deleteCampaign:", error);

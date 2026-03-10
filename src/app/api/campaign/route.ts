@@ -82,14 +82,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    // Delete campaign
-    const result = await authDeleteCampaign(req);
-
-    // Return success response with 201 Created
-    return NextResponse.json(
-      result,
-      { status: 204 },
-    );
+    await authDeleteCampaign(req);
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     // Handle known API errors
     if (error instanceof ApiError) {
@@ -102,5 +96,5 @@ export async function DELETE(req: NextRequest) {
       "An unexpected error occurred during campaign deletion",
     );
     return NextResponse.json(internalError.toJSON(), { status: 500 });
-  }  
+  }
 }
