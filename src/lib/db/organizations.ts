@@ -112,3 +112,41 @@ export async function getOrganizationsNames() {
     );
   }
 }
+
+export async function getOrganizationsForUser(data: { user_id: number | null }) {
+  try {
+    const rows = await query<organizationRowSchema>(
+      `
+      SELECT DISTINCT o.*
+      FROM organizations AS o
+      LEFT JOIN members AS m 
+        ON o.id = m.organization_id 
+        AND m.user_id = ?
+      WHERE o.is_public = 1
+        OR m.user_id IS NOT NULL
+      `,
+      [data.user_id || null],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      // Translate DB errors to meaningful API errors
+      console.error("Database error in getOrganizationsForUser:", error);
+      throw new InternalServerError(
+        "Failed to get organizations. Please ensure all provided data is valid.",
+        {
+          operation: "getOrganizationsForUser",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getOrganizationsForUser:", error);
+    throw new InternalServerError(
+      "Failed to retrieve organizations from database",
+      {
+        operation: "getOrganizationsForUser",
+      },
+    );
+  }
+}
