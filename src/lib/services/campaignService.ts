@@ -1,8 +1,24 @@
 import { NextRequest } from "next/server";
 import { getTokenFromRequest, requireAuth } from "../auth/auth";
-import { UnauthorizedError, ValidationError, NotFoundError } from "../errors/ApiError";
-import { campaignIdRowSchema, campaignRowSchema, createCampaignInput } from "../schemas/campaigns";
-import { checkDeleteCampaignPrivileges, deleteCampaign, getCampaignsForUser, insertCampaign, campaignExists } from "../db/campaigns";
+import {
+  UnauthorizedError,
+  ValidationError,
+  NotFoundError,
+} from "../errors/ApiError";
+import {
+  campaignIdRowSchema,
+  campaignResponseSchema,
+  campaignRowSchema,
+  createCampaignInput,
+} from "../schemas/campaigns";
+import {
+  checkDeleteCampaignPrivileges,
+  deleteCampaign,
+  getCampaignsForUser,
+  insertCampaign,
+  campaignExists,
+  getCampaign,
+} from "../db/campaigns";
 import { ZodError } from "zod";
 import { isMember } from "./memberService";
 
@@ -84,12 +100,35 @@ export async function authDeleteCampaign(req: NextRequest, campaignId: number) {
   }
 
   // Then check if user owns it
-  const hasPrivileges = await checkDeleteCampaignPrivileges({ user_id: auth.userId, campaign_id: campaignId });
+  const hasPrivileges = await checkDeleteCampaignPrivileges({
+    user_id: auth.userId,
+    campaign_id: campaignId,
+  });
   if (!hasPrivileges) {
-    throw new UnauthorizedError("You don't have permission to delete this campaign.");
+    throw new UnauthorizedError(
+      "You don't have permission to delete this campaign.",
+    );
   }
 
   // Delete the campaign
   await deleteCampaign({ id: campaignId });
   return true;
+}
+
+export async function authGetCampaign(req: NextRequest, campaignId: number) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  let campaign: campaignResponseSchema;
+  campaign = await getCampaign({
+    user_id: auth.userId,
+    campaign_id: campaignId,
+  });
+
+  console.log(campaign);
+
+  if (!campaign || campaign === null) {
+    throw new NotFoundError("Campaign not found.");
+  }
+
+  return campaign;
 }

@@ -16,6 +16,24 @@ export const campaignRowSchema = zod.object({
 
 export type campaignRowSchema = zod.infer<typeof campaignRowSchema>;
 
+export const campaignResponseSchema = zod.object({
+  id: zod.number().int(),
+  organization_id: zod.number().int().nullable().optional(),
+  organization_name: zod.string().max(64).nullable().optional(),
+  creator_id: zod.number().int(),
+  creator_first_name: zod.string().max(32).nullable().optional(),
+  creator_last_name: zod.string().max(32).nullable().optional(),
+  title: zod.string().max(64),
+  description: zod.string().nullable().optional(),
+  created_at: zod.date(),
+  cover_path: zod.string().max(64).nullable().optional(),
+  signature_goal: zod.number().int().nullable().optional(),
+  is_public: zod.boolean(),
+  comments_active: zod.boolean(),
+  comments_require_approval: zod.boolean(),
+});
+
+export type campaignResponseSchema = zod.infer<typeof campaignResponseSchema>;
 
 export const createCampaignInput = zod.object({
   organization_id: zod.number().int().nullable().optional(),

@@ -1,5 +1,8 @@
-import { InternalServerError } from "../errors/ApiError";
-import { campaignRowSchema } from "../schemas/campaigns";
+import { InternalServerError, NotFoundError } from "../errors/ApiError";
+import {
+  campaignResponseSchema,
+  campaignRowSchema,
+} from "../schemas/campaigns";
 import { deleteResultRow } from "../schemas/db";
 import { DBError, query } from "./query";
 
@@ -107,15 +110,65 @@ export async function getCampaignsForUser(data: { user_id: number | null }) {
       );
     }
     console.error("Unexpected error in getCampaignsForUser:", error);
-    throw new InternalServerError("Failed to retrieve campaigns from database", {
-      operation: "getCampaignsForUser",
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsForUser",
+      },
+    );
+  }
+}
+
+export async function getCampaign(data: {
+  user_id: number | null;
+  campaign_id: number;
+}) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN members AS m 
+        ON c.organization_id = m.organization_id 
+        AND m.user_id = ?
+      WHERE 
+        c.id = ? AND
+        (c.is_public = 1
+        OR c.creator_id = ?
+        OR m.user_id IS NOT NULL)
+      `,
+      [data.user_id || null, data.campaign_id, data.user_id || null],
+    );
+
+    return rows[0];
+  } catch (error) {
+    if (error instanceof DBError) {
+      // Translate DB errors to meaningful API errors
+      console.error("Database error in getCampaign:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaign",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaign:", error);
+    throw new InternalServerError("Failed to retrieve campaign from database", {
+      operation: "getCampaign",
     });
   }
 }
 
 export async function checkDeleteCampaignPrivileges(data: {
-  user_id: number,
-  campaign_id: number
+  user_id: number;
+  campaign_id: number;
 }) {
   try {
     const rows = await query<campaignRowSchema>(
@@ -126,16 +179,11 @@ export async function checkDeleteCampaignPrivileges(data: {
         AND
         creator_id = ?
       `,
-      [
-        data.campaign_id,
-        data.user_id
-      ],
+      [data.campaign_id, data.user_id],
     );
 
-    if (rows.length > 0)
-      return true;
+    if (rows.length > 0) return true;
     else return false;
-
   } catch (error) {
     if (error instanceof DBError) {
       // Translate DB errors to meaningful API errors
@@ -149,15 +197,16 @@ export async function checkDeleteCampaignPrivileges(data: {
       );
     }
     console.error("Unexpected error in getCampaignsForUser:", error);
-    throw new InternalServerError("Failed to retrieve campaigns from database", {
-      operation: "getCampaignsForUser",
-    });
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsForUser",
+      },
+    );
   }
 }
 
-export async function campaignExists(data: {
-  campaign_id: number
-}) {
+export async function campaignExists(data: { campaign_id: number }) {
   try {
     const rows = await query<campaignRowSchema>(
       `
@@ -171,10 +220,10 @@ export async function campaignExists(data: {
   } catch (error) {
     if (error instanceof DBError) {
       console.error("Database error in campaignExists:", error);
-      throw new InternalServerError(
-        "Failed to check campaign.",
-        { operation: "campaignExists", dbCode: error.code },
-      );
+      throw new InternalServerError("Failed to check campaign.", {
+        operation: "campaignExists",
+        dbCode: error.code,
+      });
     }
     console.error("Unexpected error in campaignExists:", error);
     throw new InternalServerError("Failed to check campaign from database", {
@@ -183,9 +232,7 @@ export async function campaignExists(data: {
   }
 }
 
-export async function deleteCampaign(data: {
-  id: number
-}) {
+export async function deleteCampaign(data: { id: number }) {
   try {
     // First delete dependent records
     await query(
@@ -226,10 +273,10 @@ export async function deleteCampaign(data: {
   } catch (error) {
     if (error instanceof DBError) {
       console.error("Database error in deleteCampaign:", error);
-      throw new InternalServerError(
-        "Failed to delete campaign.",
-        { operation: "deleteCampaign", dbCode: error.code },
-      );
+      throw new InternalServerError("Failed to delete campaign.", {
+        operation: "deleteCampaign",
+        dbCode: error.code,
+      });
     }
     console.error("Unexpected error in deleteCampaign:", error);
     throw new InternalServerError("Failed to delete campaign from database", {
