@@ -1,11 +1,24 @@
 import { NextRequest } from "next/server";
-import { requireAuth } from "../auth/auth";
-import { ValidationError } from "../errors/ApiError";
-import { insertMember, searchMemberOfOrganization } from "../db/members";
+import { getTokenFromRequest, requireAuth } from "../auth/auth";
+import { NotFoundError, ValidationError } from "../errors/ApiError";
+import {
+  getMembersCount,
+  getMembersList,
+  insertMember,
+  searchMemberOfOrganization,
+} from "../db/members";
 import { ZodError } from "zod";
-import { createMemberInput, memberRowSchema } from "../schemas/members";
+import {
+  createMemberInput,
+  memberResponseSchema,
+  memberRowSchema,
+} from "../schemas/members";
+import { getCampaignsForUser } from "../db/campaigns";
+import { campaignRowSchema } from "../schemas/campaigns";
+import { getOrganization } from "../db/organizations";
+import { organizationResponseSchema } from "../schemas/organization";
 
-export async function addMember(req: NextRequest) {
+export async function addMember(req: NextRequest, organizationId: number) {
   const auth = requireAuth(req);
 
   let body: any;
@@ -34,8 +47,20 @@ export async function addMember(req: NextRequest) {
     throw error;
   }
 
+  // Check if user is already a member of the organization
+  if (
+    await searchMemberOfOrganization({
+      organization_id: organizationId,
+      user_id: auth.userId,
+    })
+  ) {
+    throw new ValidationError("User is already a member of this organization", {
+      error: "Duplicate member",
+    });
+  }
+
   const member: memberRowSchema = await insertMember({
-    organization_id: input.organization_id,
+    organization_id: organizationId,
     user_id: auth.userId,
     is_moderator: input.is_moderator,
     is_owner: input.is_owner,
@@ -64,4 +89,46 @@ export async function isMember(userId: number, organizationId: number) {
   if (!member) return false;
 
   return true;
+}
+
+export async function authGetMembersList(
+  req: NextRequest,
+  organizationId: number,
+) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  const organization : organizationResponseSchema =
+  await getOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+  });
+
+  if (!organization) {
+    throw new NotFoundError("Organization not found");
+  }
+
+  let members: memberResponseSchema[];
+  members = await getMembersList({ organization_id: organization.id });
+  return members;
+}
+
+export async function authGetMembersCount(
+  req: NextRequest,
+  organizationId: number
+) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  const organization : organizationResponseSchema =
+  await getOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+  });
+
+  if (!organization) {
+    throw new NotFoundError("Organization not found");
+  }
+
+  let members: number;
+  members = await getMembersCount({ organization_id: organization.id });
+  return members;
 }

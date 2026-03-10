@@ -1,19 +1,20 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { getTokenFromRequest, requireAuth } from "../auth/auth";
-import { ValidationError } from "../errors/ApiError";
+import { NotFoundError, ValidationError } from "../errors/ApiError";
 import {
   createOrganizationInput,
   organizationNameSchema,
+  organizationResponseSchema,
   organizationRowSchema,
 } from "../schemas/organization";
 import {
+  getOrganization,
   getOrganizationsForUser,
   getOrganizationsNames,
   insertOrganization,
 } from "../db/organizations";
 import { insertMember } from "../db/members";
-import { addMember } from "./memberService";
 import { memberRowSchema } from "../schemas/members";
 
 export async function createOrganization(req: NextRequest) {
@@ -89,4 +90,23 @@ export async function getAuthorizedOrganizations(req: NextRequest) {
   let organizations: organizationRowSchema[];
   organizations = await getOrganizationsForUser({ user_id: auth.userId });
   return organizations;
+}
+
+export async function authGetOrganization(
+  req: NextRequest,
+  organizationId: number,
+) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  let organization: organizationResponseSchema;
+  organization = await getOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+  });
+
+  if (!organization || organization === null) {
+    throw new NotFoundError("Organization not found.");
+  }
+
+  return organization;
 }

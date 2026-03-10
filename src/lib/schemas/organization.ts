@@ -29,6 +29,23 @@ export const organizationRowSchema = zod.object({
 
 export type organizationRowSchema = zod.infer<typeof organizationRowSchema>;
 
+export const organizationResponseSchema = zod.object({
+  id: zod.number().int(),
+  creator_id: zod.number().int(),
+  creator_first_name: zod.string().max(32).nullable().optional(),
+  creator_last_name: zod.string().max(32).nullable().optional(),
+  name: zod.string().max(64),
+  description: zod.string().max(65535).nullable().optional(),
+  created_at: zod.date(),
+  cover_path: zod.string().max(64).nullable().optional(),
+  is_public: zod.boolean(),
+  requires_approval: zod.boolean(),
+});
+
+export type organizationResponseSchema = zod.infer<
+  typeof organizationResponseSchema
+>;
+
 export const createOrganizationInput = zod.object({
   name: zod
     .string({ message: "Name is required" })

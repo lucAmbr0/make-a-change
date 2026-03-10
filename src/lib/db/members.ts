@@ -1,5 +1,5 @@
-import { InternalServerError } from "../errors/ApiError";
-import { memberRowSchema } from "../schemas/members";
+import { InternalServerError, NotFoundError } from "../errors/ApiError";
+import { memberResponseSchema, memberRowSchema } from "../schemas/members";
 import { query, DBError } from "./query";
 
 export async function insertMember(data: {
@@ -24,8 +24,8 @@ export async function insertMember(data: {
       [
         data.organization_id,
         data.user_id,
-        data.is_moderator || null,
-        data.is_owner || null,
+        data.is_moderator || 0,
+        data.is_owner || 0,
       ],
     );
 
@@ -92,5 +92,85 @@ export async function searchMemberOfOrganization(data: {
     throw new InternalServerError("Failed to search member in database", {
       operation: "seachMemberOfOrganization",
     });
+  }
+}
+
+export async function getMembersList(data: { organization_id: number }) {
+  try {
+    const rows = await query<memberResponseSchema>(
+      `
+      SELECT DISTINCT m.*, u.first_name as user_first_name, u.last_name as user_last_name
+      FROM members AS m
+        JOIN users AS u ON u.id = m.user_id
+      WHERE
+        m.organization_id = ?
+      `,
+      [data.organization_id],
+    );
+
+    if (!rows || rows.length === 0) {
+      throw new InternalServerError("Members list failed: no rows returned", {
+        operation: "getMembersList",
+      });
+    }
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      // Translate DB errors to meaningful API errors
+      console.error("Database error in getMembersList:", error);
+      throw new InternalServerError(
+        "Failed to get members. Please ensure all provided organization data are valid.",
+        {
+          operation: "getMembersList",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getMembersList:", error);
+    throw new InternalServerError("Failed to retrieve members from database", {
+      operation: "getMembersList",
+    });
+  }
+}
+
+export async function getMembersCount(data: { organization_id: number }) {
+  try {
+    const rows = await query<{ count: number }>(
+      `
+      SELECT DISTINCT COUNT(*) AS count
+      FROM members AS m
+      WHERE
+        m.organization_id = ?
+      `,
+      [data.organization_id],
+    );
+
+    if (!rows || rows.length === 0) {
+      throw new InternalServerError("Members count failed: no rows returned", {
+        operation: "getMembersCount",
+      });
+    }
+
+    return rows[0].count;
+  } catch (error) {
+    if (error instanceof DBError) {
+      // Translate DB errors to meaningful API errors
+      console.error("Database error in getMembersCount:", error);
+      throw new InternalServerError(
+        "Failed to get members. Please ensure all provided organization data are valid.",
+        {
+          operation: "getMembersCount",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getMembersCount:", error);
+    throw new InternalServerError(
+      "Failed to retrieve members count from database",
+      {
+        operation: "getMembersCount",
+      },
+    );
   }
 }

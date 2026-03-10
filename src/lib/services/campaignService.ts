@@ -124,8 +124,6 @@ export async function authGetCampaign(req: NextRequest, campaignId: number) {
     campaign_id: campaignId,
   });
 
-  console.log(campaign);
-
   if (!campaign || campaign === null) {
     throw new NotFoundError("Campaign not found.");
   }
