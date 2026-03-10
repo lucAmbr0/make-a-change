@@ -71,51 +71,25 @@ export async function getAuthorizedCampaings(req: NextRequest) {
   return campaigns;
 }
 
-export async function authDeleteCampaign(req: NextRequest) {
+export async function authDeleteCampaign(req: NextRequest, campaignId: number) {
   const auth = requireAuth(req);
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch (error) {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  // Validate input against schema
-  let input;
-  try {
-    input = campaignIdRowSchema.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: any) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
-
   // First check if campaign exists
-  const exists = await campaignExists({ campaign_id: input.id });
+  const exists = await campaignExists({ campaign_id: campaignId });
   if (!exists) {
     throw new NotFoundError("Campaign not found.", {
       operation: "authDeleteCampaign",
-      campaignId: input.id,
+      campaignId: campaignId,
     });
   }
 
   // Then check if user owns it
-  const hasPrivileges = await checkDeleteCampaignPrivileges({ user_id: auth.userId, campaign_id: input.id });
+  const hasPrivileges = await checkDeleteCampaignPrivileges({ user_id: auth.userId, campaign_id: campaignId });
   if (!hasPrivileges) {
     throw new UnauthorizedError("You don't have permission to delete this campaign.");
   }
 
   // Delete the campaign
-  await deleteCampaign({ id: input.id });
+  await deleteCampaign({ id: campaignId });
   return true;
 }

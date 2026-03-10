@@ -79,22 +79,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(internalError.toJSON(), { status: 500 });
   }
 }
-
-export async function DELETE(req: NextRequest) {
-  try {
-    await authDeleteCampaign(req);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    // Handle known API errors
-    if (error instanceof ApiError) {
-      return NextResponse.json(error.toJSON(), { status: error.statusCode });
-    }
-
-    // Handle unexpected errors
-    console.error("Unexpected error in campaign deletion route:", error);
-    const internalError = new InternalServerError(
-      "An unexpected error occurred during campaign deletion",
-    );
-    return NextResponse.json(internalError.toJSON(), { status: 500 });
-  }
-}
