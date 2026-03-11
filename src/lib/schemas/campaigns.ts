@@ -12,6 +12,7 @@ export const campaignRowSchema = zod.object({
   is_public: zod.boolean(),
   comments_active: zod.boolean(),
   comments_require_approval: zod.boolean(),
+  is_archived: zod.boolean(),
 });
 
 export type campaignRowSchema = zod.infer<typeof campaignRowSchema>;
@@ -31,6 +32,7 @@ export const campaignResponseSchema = zod.object({
   is_public: zod.boolean(),
   comments_active: zod.boolean(),
   comments_require_approval: zod.boolean(),
+  is_archived: zod.boolean(),
 });
 
 export type campaignResponseSchema = zod.infer<typeof campaignResponseSchema>;
