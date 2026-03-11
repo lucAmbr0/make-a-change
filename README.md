@@ -210,6 +210,37 @@ Database
 
 ---
 
+### Database structure:
+
+<p style="text-align: center;">
+<img src="db-schema.png" width="100%">
+<p>
+
+---
+
+### API routes:
+
+<!-- cd src/app/api && ls -TD -->
+
+```
+/api
+├── /auth
+│   ├── /login
+│   ├── /me
+│   └── /signup
+├── /campaign
+│   └── /[id]
+│       ├── /comments
+│       └── /signature
+├── /join
+└── /organization
+    └── /[id]
+        ├── /invite_codes
+        └── /member
+```
+
+---
+
 # 📊 Project Status
 
 The project is currently **in development**.
