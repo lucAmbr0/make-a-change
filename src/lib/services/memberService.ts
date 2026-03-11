@@ -13,10 +13,35 @@ import {
   memberResponseSchema,
   memberRowSchema,
 } from "../schemas/members";
-import { getCampaignsForUser } from "../db/campaigns";
-import { campaignRowSchema } from "../schemas/campaigns";
 import { getOrganization } from "../db/organizations";
 import { organizationResponseSchema } from "../schemas/organization";
+
+export async function addMemberForUser(
+  userId: number,
+  organizationId: number,
+  input: createMemberInput = {},
+) {
+  // Check if user is already a member of the organization
+  if (
+    await searchMemberOfOrganization({
+      organization_id: organizationId,
+      user_id: userId,
+    })
+  ) {
+    throw new ValidationError("User is already a member of this organization", {
+      error: "Duplicate member",
+    });
+  }
+
+  const member: memberRowSchema = await insertMember({
+    organization_id: organizationId,
+    user_id: userId,
+    is_moderator: input.is_moderator,
+    is_owner: input.is_owner,
+  });
+
+  return member;
+}
 
 export async function addMember(req: NextRequest, organizationId: number) {
   const auth = requireAuth(req);
@@ -47,24 +72,7 @@ export async function addMember(req: NextRequest, organizationId: number) {
     throw error;
   }
 
-  // Check if user is already a member of the organization
-  if (
-    await searchMemberOfOrganization({
-      organization_id: organizationId,
-      user_id: auth.userId,
-    })
-  ) {
-    throw new ValidationError("User is already a member of this organization", {
-      error: "Duplicate member",
-    });
-  }
-
-  const member: memberRowSchema = await insertMember({
-    organization_id: organizationId,
-    user_id: auth.userId,
-    is_moderator: input.is_moderator,
-    is_owner: input.is_owner,
-  });
+  const member = await addMemberForUser(auth.userId, organizationId, input);
 
   return member;
 }
