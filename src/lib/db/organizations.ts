@@ -164,6 +164,142 @@ export async function getOrganization(data: {
   }
 }
 
+export async function getOrganizationById(data: { organization_id: number }) {
+  try {
+    const rows = await query<organizationRowSchema>(
+      `
+      SELECT *
+      FROM organizations
+      WHERE id = ?
+      `,
+      [data.organization_id],
+    );
+
+    return rows[0] || null;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getOrganizationById:", error);
+      throw new InternalServerError(
+        "Failed to get organization. Please ensure all provided organization data are valid.",
+        {
+          operation: "getOrganizationById",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getOrganizationById:", error);
+    throw new InternalServerError(
+      "Failed to retrieve organization from database",
+      {
+        operation: "getOrganizationById",
+      },
+    );
+  }
+}
+
+export async function deleteOrganization(data: { organization_id: number }) {
+  try {
+    // Delete dependent records in cascade order
+    // Delete favorites first
+    await query(
+      `
+      DELETE FROM favorites
+      WHERE campaign_id IN (
+        SELECT id FROM campaigns
+        WHERE organization_id = ?
+      )
+      `,
+      [data.organization_id],
+    );
+
+    // Delete signatures
+    await query(
+      `
+      DELETE FROM signatures
+      WHERE campaign_id IN (
+        SELECT id FROM campaigns
+        WHERE organization_id = ?
+      )
+      `,
+      [data.organization_id],
+    );
+
+    // Delete comments
+    await query(
+      `
+      DELETE FROM comments
+      WHERE campaign_id IN (
+        SELECT id FROM campaigns
+        WHERE organization_id = ?
+      )
+      `,
+      [data.organization_id],
+    );
+
+    // Delete campaigns
+    await query(
+      `
+      DELETE FROM campaigns
+      WHERE organization_id = ?
+      `,
+      [data.organization_id],
+    );
+
+    // Delete approval requests
+    await query(
+      `
+      DELETE FROM approval_requests
+      WHERE organization_id = ?
+      `,
+      [data.organization_id],
+    );
+
+    // Delete invite codes
+    await query(
+      `
+      DELETE FROM invite_codes
+      WHERE organization_id = ?
+      `,
+      [data.organization_id],
+    );
+
+    // Delete members
+    await query(
+      `
+      DELETE FROM members
+      WHERE organization_id = ?
+      `,
+      [data.organization_id],
+    );
+
+    // Delete organization
+    await query(
+      `
+      DELETE FROM organizations
+      WHERE id = ?
+      `,
+      [data.organization_id],
+    );
+
+    return true;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in deleteOrganization:", error);
+      throw new InternalServerError("Failed to delete organization.", {
+        operation: "deleteOrganization",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in deleteOrganization:", error);
+    throw new InternalServerError(
+      "Failed to delete organization from database",
+      {
+        operation: "deleteOrganization",
+      },
+    );
+  }
+}
+
 export async function getOrganizationsForUser(data: {
   user_id: number | null;
 }) {

@@ -110,3 +110,30 @@ export async function authGetOrganization(
 
   return organization;
 }
+
+export async function authDeleteOrganization(
+  req: NextRequest,
+  organizationId: number,
+) {
+  const auth = requireAuth(req);
+
+  const organization = await getOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+  });
+
+  if (!organization) {
+    throw new NotFoundError("Organization not found.");
+  }
+
+  if (organization.creator_id !== auth.userId) {
+    throw new UnauthorizedError(
+      "You must be the owner of this organization to delete it.",
+    );
+  }
+
+  const { deleteOrganization } = await import("../db/organizations");
+  await deleteOrganization({ organization_id: organizationId });
+
+  return true;
+}

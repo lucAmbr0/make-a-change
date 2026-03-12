@@ -124,6 +124,5 @@ export async function DELETE(
     );
     return NextResponse.json(internalError.toJSON(), { status: 500 });
   }
-
   
 }

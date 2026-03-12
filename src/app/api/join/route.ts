@@ -1,18 +1,34 @@
 import { ApiError, InternalServerError } from "@/lib/errors/ApiError";
+import { approvalRequestRowSchema } from "@/lib/schemas/approval_requests";
 import { memberRowSchema } from "@/lib/schemas/members";
-import { joinOrganizationWithInviteCode } from "@/lib/services/inviteCodeService";
+import { joinOrganization } from "@/lib/services/joinService";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
 	try {
-		const member: memberRowSchema = await joinOrganizationWithInviteCode(req);
+		const result = await joinOrganization(req);
+
+		if (result.type === "member") {
+			const member: memberRowSchema = result.member;
+
+			return NextResponse.json(
+				{
+					organization_id: member.organization_id,
+					user_id: member.user_id,
+					is_moderator: member.is_moderator,
+					is_owner: member.is_owner,
+				},
+				{ status: 201 },
+			);
+		}
+
+		const approvalRequest: approvalRequestRowSchema = result.approvalRequest;
 
 		return NextResponse.json(
 			{
-				organization_id: member.organization_id,
-				user_id: member.user_id,
-				is_moderator: member.is_moderator,
-				is_owner: member.is_owner,
+				organization_id: approvalRequest.organization_id,
+				user_id: approvalRequest.user_id,
+				requested_at: approvalRequest.requested_at,
 			},
 			{ status: 201 },
 		);

@@ -173,13 +173,20 @@ export async function checkDeleteCampaignPrivileges(data: {
   try {
     const rows = await query<campaignRowSchema>(
       `
-        SELECT * FROM campaigns as c
+        SELECT c.* FROM campaigns as c
+        LEFT JOIN members as m
+          ON c.organization_id = m.organization_id
+          AND m.user_id = ?
         WHERE
-        id = ?
+        c.id = ?
         AND
-        creator_id = ?
+        (
+          c.creator_id = ?
+          OR m.is_moderator = 1
+          OR m.is_owner = 1
+        )
       `,
-      [data.campaign_id, data.user_id],
+      [data.user_id, data.campaign_id, data.user_id],
     );
 
     if (rows.length > 0) return true;
@@ -187,20 +194,20 @@ export async function checkDeleteCampaignPrivileges(data: {
   } catch (error) {
     if (error instanceof DBError) {
       // Translate DB errors to meaningful API errors
-      console.error("Database error in getCampaignsForUser:", error);
+      console.error("Database error in checkDeleteCampaignPrivileges:", error);
       throw new InternalServerError(
-        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        "Failed to check campaign delete privileges. Please ensure all provided organization and campaign data are valid.",
         {
-          operation: "getCampaignsForUser",
+          operation: "checkDeleteCampaignPrivileges",
           dbCode: error.code,
         },
       );
     }
-    console.error("Unexpected error in getCampaignsForUser:", error);
+    console.error("Unexpected error in checkDeleteCampaignPrivileges:", error);
     throw new InternalServerError(
-      "Failed to retrieve campaigns from database",
+      "Failed to check campaign delete privileges from database",
       {
-        operation: "getCampaignsForUser",
+        operation: "checkDeleteCampaignPrivileges",
       },
     );
   }

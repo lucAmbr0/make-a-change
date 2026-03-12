@@ -174,3 +174,32 @@ export async function getMembersCount(data: { organization_id: number }) {
     );
   }
 }
+
+export async function deleteMember(data: {
+  user_id: number;
+  organization_id: number;
+}) {
+  try {
+    await query(
+      `
+      DELETE FROM members
+      WHERE user_id = ? AND organization_id = ?
+      `,
+      [data.user_id, data.organization_id],
+    );
+
+    return true;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in deleteMember:", error);
+      throw new InternalServerError("Failed to delete member.", {
+        operation: "deleteMember",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in deleteMember:", error);
+    throw new InternalServerError("Failed to delete member from database", {
+      operation: "deleteMember",
+    });
+  }
+}

@@ -10,6 +10,7 @@ import {
 } from "@/lib/errors/ApiError";
 import {
   authGetOrganization,
+  authDeleteOrganization,
   createOrganization,
   getAuthorizedOrganizations,
 } from "@/lib/services/organizationService";
@@ -88,6 +89,38 @@ export async function POST(req: NextRequest) {
     console.error("Unexpected error in organization creation route:", error);
     const internalError = new InternalServerError(
       "An unexpected error occurred during organization creation",
+    );
+    return NextResponse.json(internalError.toJSON(), { status: 500 });
+  }
+}
+
+// Organization Deletion
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const organizationId = parseInt(id, 10);
+
+    if (isNaN(organizationId)) {
+      throw new ValidationError("Invalid organization ID", {
+        error: "Organization ID must be a valid number",
+      });
+    }
+
+    await authDeleteOrganization(req, organizationId);
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    // Handle known API errors
+    if (error instanceof ApiError) {
+      return NextResponse.json(error.toJSON(), { status: error.statusCode });
+    }
+
+    // Handle unexpected errors
+    console.error("Unexpected error in organization deletion route:", error);
+    const internalError = new InternalServerError(
+      "An unexpected error occurred during organization deletion",
     );
     return NextResponse.json(internalError.toJSON(), { status: 500 });
   }

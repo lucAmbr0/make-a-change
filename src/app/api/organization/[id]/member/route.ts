@@ -5,7 +5,7 @@ import {
   InternalServerError,
   ValidationError,
 } from "@/lib/errors/ApiError";
-import { addMember, authGetMembersCount, authGetMembersList } from "@/lib/services/memberService";
+import { addMember, authGetMembersCount, authGetMembersList, authDeleteMember } from "@/lib/services/memberService";
 
 export async function GET(
   req: NextRequest,
@@ -132,6 +132,38 @@ export async function POST(
     console.error("Unexpected error in Member creation route:", error);
     const internalError = new InternalServerError(
       "An unexpected error occurred during Member creation",
+    );
+    return NextResponse.json(internalError.toJSON(), { status: 500 });
+  }
+}
+
+// Member Deletion
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const organizationId = parseInt(id, 10);
+
+    if (isNaN(organizationId)) {
+      throw new ValidationError("Invalid organization ID", {
+        error: "Organization ID must be a valid number",
+      });
+    }
+
+    await authDeleteMember(req, organizationId);
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    // Handle known API errors
+    if (error instanceof ApiError) {
+      return NextResponse.json(error.toJSON(), { status: error.statusCode });
+    }
+
+    // Handle unexpected errors
+    console.error("Unexpected error in Member deletion route:", error);
+    const internalError = new InternalServerError(
+      "An unexpected error occurred during Member deletion",
     );
     return NextResponse.json(internalError.toJSON(), { status: 500 });
   }

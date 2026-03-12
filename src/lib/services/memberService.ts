@@ -1,13 +1,17 @@
 import { NextRequest } from "next/server";
+import { ZodError } from "zod";
 import { getTokenFromRequest, requireAuth } from "../auth/auth";
-import { NotFoundError, ValidationError } from "../errors/ApiError";
+import {
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "../errors/ApiError";
 import {
   getMembersCount,
   getMembersList,
   insertMember,
   searchMemberOfOrganization,
 } from "../db/members";
-import { ZodError } from "zod";
 import {
   createMemberInput,
   memberResponseSchema,
@@ -75,6 +79,85 @@ export async function addMember(req: NextRequest, organizationId: number) {
   const member = await addMemberForUser(auth.userId, organizationId, input);
 
   return member;
+}
+
+export async function requireModeratorOrOwner(
+  userId: number,
+  organizationId: number,
+) {
+  const member = await searchMemberOfOrganization({
+    organization_id: organizationId,
+    user_id: userId,
+  });
+
+  if (!member) {
+    throw new UnauthorizedError("You are not a member of this organization.");
+  }
+
+  if (!member.is_moderator && !member.is_owner) {
+    throw new UnauthorizedError(
+      "You must be a moderator or owner of this organization.",
+    );
+  }
+}
+
+export async function authDeleteMember(
+  req: NextRequest,
+  organizationId: number,
+) {
+  const auth = requireAuth(req);
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    throw new ValidationError("Invalid JSON in request body", {
+      error: "Request body must be valid JSON",
+    });
+  }
+
+  let input;
+  try {
+    const { deleteMemberInput } = await import("../schemas/members");
+    input = deleteMemberInput.parse(body);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new ValidationError("Validation failed", {
+        errors: error.issues.map((err: any) => ({
+          field: err.path.join("."),
+          message: err.message,
+          code: err.code,
+        })),
+      });
+    }
+    throw error;
+  }
+
+  const targetUserId = input.user_id;
+
+  // Check if target member exists
+  const memberToRemove = await searchMemberOfOrganization({
+    organization_id: organizationId,
+    user_id: targetUserId,
+  });
+
+  if (!memberToRemove) {
+    throw new NotFoundError("Member not found in this organization.");
+  }
+
+  // If the authenticated user is removing someone else, they must be moderator or owner
+  if (auth.userId !== targetUserId) {
+    await requireModeratorOrOwner(auth.userId, organizationId);
+  }
+
+  // Delete the member
+  const { deleteMember } = await import("../db/members");
+  await deleteMember({
+    user_id: targetUserId,
+    organization_id: organizationId,
+  });
+
+  return true;
 }
 
 export async function getMember(userId: number, organizationId: number) {
