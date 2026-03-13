@@ -78,13 +78,15 @@ export async function createComment(req: NextRequest, campaignId: number) {
     });
   }
 
+  const isVisible = !campaign.comments_require_approval;
+
   const creationDate = new Date();
   const comment: commentRowSchema = await insertComment({
     user_id: auth.userId,
     campaign_id: campaignId,
     text: input.text,
     created_at: creationDate,
-    visible: true,
+    visible: isVisible,
   });
 
   return comment;

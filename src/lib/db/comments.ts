@@ -21,15 +21,27 @@ export async function getCommentsForCampaign(data: {
           AND m.user_id = ?
       WHERE
         cm.campaign_id = ?
-        AND cm.visible = 1
         AND (
-          c.is_public = 1
-          OR c.creator_id = ?
-          OR m.user_id IS NOT NULL
+          cm.visible = 1
+          OR (
+            ? IS NOT NULL
+            AND (
+              cm.user_id = ?
+              OR c.creator_id = ?
+              OR m.is_moderator = 1
+              OR m.is_owner = 1
+            )
+          )
         )
       ORDER BY cm.created_at ASC
       `,
-      [data.user_id || null, data.campaign_id, data.user_id || null],
+      [
+        data.user_id || null,
+        data.campaign_id,
+        data.user_id || null,
+        data.user_id || null,
+        data.user_id || null,
+      ],
     );
 
     return rows;
