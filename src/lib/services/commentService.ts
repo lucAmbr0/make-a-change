@@ -7,19 +7,32 @@ import {
   ValidationError,
 } from "../errors/ApiError";
 import {
+  checkModerateCommentPrivileges,
   checkDeleteCommentPrivileges,
   deleteCommentByIdInCampaign,
   getCommentByIdInCampaign,
   getCommentsForCampaign,
   insertComment,
+  updateCommentVisibilityByIdInCampaign,
 } from "../db/comments";
 import {
   commentResponseSchema,
   commentRowSchema,
   createCommentInput,
   deleteCommentInput,
+  moderateCommentInput,
 } from "../schemas/comments";
 import { authGetCampaign } from "./campaignService";
+
+export type moderateCommentResult =
+  | {
+      type: "approved";
+      comment: commentRowSchema;
+    }
+  | {
+      type: "rejected";
+      comment: commentRowSchema;
+    };
 
 export async function authGetCampaignComments(
   req: NextRequest,
@@ -147,4 +160,80 @@ export async function authDeleteComment(req: NextRequest, campaignId: number) {
   });
 
   return true;
+}
+
+export async function authModerateComment(
+  req: NextRequest,
+  campaignId: number,
+  commentId: number,
+): Promise<moderateCommentResult> {
+  const auth = requireAuth(req);
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    throw new ValidationError("Invalid JSON in request body", {
+      error: "Request body must be valid JSON",
+    });
+  }
+
+  let input;
+  try {
+    input = moderateCommentInput.parse(body);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new ValidationError("Validation failed", {
+        errors: error.issues.map((err: ZodIssue) => ({
+          field: err.path.join("."),
+          message: err.message,
+          code: err.code,
+        })),
+      });
+    }
+    throw error;
+  }
+
+  const existingComment = await getCommentByIdInCampaign({
+    comment_id: commentId,
+    campaign_id: campaignId,
+  });
+
+  if (!existingComment) {
+    throw new NotFoundError("Comment not found.");
+  }
+
+  const hasPrivileges = await checkModerateCommentPrivileges({
+    user_id: auth.userId,
+    campaign_id: campaignId,
+  });
+
+  if (!hasPrivileges) {
+    throw new UnauthorizedError(
+      "You don't have permission to moderate comments for this campaign.",
+    );
+  }
+
+  if (input.comment_approval) {
+    const updatedComment = await updateCommentVisibilityByIdInCampaign({
+      comment_id: commentId,
+      campaign_id: campaignId,
+      visible: true,
+    });
+
+    return {
+      type: "approved",
+      comment: updatedComment,
+    };
+  }
+
+  await deleteCommentByIdInCampaign({
+    comment_id: commentId,
+    campaign_id: campaignId,
+  });
+
+  return {
+    type: "rejected",
+    comment: existingComment,
+  };
 }

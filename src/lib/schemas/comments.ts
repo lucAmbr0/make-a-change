@@ -42,3 +42,11 @@ export const deleteCommentInput = zod.object({
 });
 
 export type deleteCommentInput = zod.infer<typeof deleteCommentInput>;
+
+export const moderateCommentInput = zod.object({
+  comment_approval: zod.boolean({
+    message: "comment_approval must be true or false",
+  }),
+});
+
+export type moderateCommentInput = zod.infer<typeof moderateCommentInput>;

@@ -228,3 +228,95 @@ export async function deleteCommentByIdInCampaign(data: {
     });
   }
 }
+
+export async function checkModerateCommentPrivileges(data: {
+  user_id: number;
+  campaign_id: number;
+}) {
+  try {
+    const rows = await query<{ id: number }>(
+      `
+      SELECT c.id
+      FROM campaigns AS c
+        LEFT JOIN members AS m
+          ON c.organization_id = m.organization_id
+          AND m.user_id = ?
+      WHERE
+        c.id = ?
+        AND (
+          c.creator_id = ?
+          OR m.is_moderator = 1
+          OR m.is_owner = 1
+        )
+      `,
+      [data.user_id, data.campaign_id, data.user_id],
+    );
+
+    return rows.length > 0;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in checkModerateCommentPrivileges:", error);
+      throw new InternalServerError("Failed to check moderation privileges.", {
+        operation: "checkModerateCommentPrivileges",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in checkModerateCommentPrivileges:", error);
+    throw new InternalServerError(
+      "Failed to check comment moderation privileges from database",
+      {
+        operation: "checkModerateCommentPrivileges",
+      },
+    );
+  }
+}
+
+export async function updateCommentVisibilityByIdInCampaign(data: {
+  comment_id: number;
+  campaign_id: number;
+  visible: boolean;
+}) {
+  try {
+    const rows = await query<commentRowSchema>(
+      `
+      UPDATE comments
+      SET visible = ?
+      WHERE id = ? AND campaign_id = ?
+      RETURNING *
+      `,
+      [data.visible, data.comment_id, data.campaign_id],
+    );
+
+    if (!rows || rows.length === 0) {
+      throw new InternalServerError(
+        "Comment visibility update failed: no rows returned",
+        {
+          operation: "updateCommentVisibilityByIdInCampaign",
+        },
+      );
+    }
+
+    return rows[0];
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error(
+        "Database error in updateCommentVisibilityByIdInCampaign:",
+        error,
+      );
+      throw new InternalServerError("Failed to update comment visibility.", {
+        operation: "updateCommentVisibilityByIdInCampaign",
+        dbCode: error.code,
+      });
+    }
+    console.error(
+      "Unexpected error in updateCommentVisibilityByIdInCampaign:",
+      error,
+    );
+    throw new InternalServerError(
+      "Failed to update comment visibility in database",
+      {
+        operation: "updateCommentVisibilityByIdInCampaign",
+      },
+    );
+  }
+}
