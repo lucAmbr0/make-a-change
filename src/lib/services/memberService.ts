@@ -19,6 +19,10 @@ import {
 } from "../schemas/members";
 import { getOrganization } from "../db/organizations";
 import { organizationResponseSchema } from "../schemas/organization";
+import { 
+  requireOrganizationModeratorOrOwner,
+  isSuperUser 
+} from "../auth/permissions";
 
 export async function addMemberForUser(
   userId: number,
@@ -81,24 +85,12 @@ export async function addMember(req: NextRequest, organizationId: number) {
   return member;
 }
 
-export async function requireModeratorOrOwner(
+async function requireModeratorOrOwner(
   userId: number,
   organizationId: number,
 ) {
-  const member = await searchMemberOfOrganization({
-    organization_id: organizationId,
-    user_id: userId,
-  });
-
-  if (!member) {
-    throw new UnauthorizedError("You are not a member of this organization.");
-  }
-
-  if (!member.is_moderator && !member.is_owner) {
-    throw new UnauthorizedError(
-      "You must be a moderator or owner of this organization.",
-    );
-  }
+  // Use centralized permission system (includes superuser bypass)
+  await requireOrganizationModeratorOrOwner(userId, organizationId);
 }
 
 export async function authDeleteMember(

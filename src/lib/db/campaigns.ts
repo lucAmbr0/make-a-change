@@ -166,6 +166,48 @@ export async function getCampaign(data: {
   }
 }
 
+/**
+ * Get campaign by ID without authorization checks
+ * Used for superusers who have already been authorized
+ */
+export async function getCampaignUnauthorized(data: {
+  campaign_id: number;
+}) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+      WHERE c.id = ?
+      `,
+      [data.campaign_id],
+    );
+
+    return rows[0];
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignUnauthorized:", error);
+      throw new InternalServerError(
+        "Failed to get campaign. Please ensure the campaign exists.",
+        {
+          operation: "getCampaignUnauthorized",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignUnauthorized:", error);
+    throw new InternalServerError("Failed to retrieve campaign from database", {
+      operation: "getCampaignUnauthorized",
+    });
+  }
+}
+
 export async function checkDeleteCampaignPrivileges(data: {
   user_id: number;
   campaign_id: number;

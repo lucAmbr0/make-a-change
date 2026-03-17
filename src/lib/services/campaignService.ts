@@ -18,9 +18,11 @@ import {
   insertCampaign,
   campaignExists,
   getCampaign,
+  getCampaignUnauthorized,
 } from "../db/campaigns";
 import { ZodError } from "zod";
 import { isMember } from "./memberService";
+import { requireCampaignDelete, canAccessCampaign, isSuperUser } from "../auth/permissions";
 
 export async function createCampaign(req: NextRequest) {
   const auth = requireAuth(req);
@@ -99,16 +101,9 @@ export async function authDeleteCampaign(req: NextRequest, campaignId: number) {
     });
   }
 
-  // Then check if user owns it
-  const hasPrivileges = await checkDeleteCampaignPrivileges({
-    user_id: auth.userId,
-    campaign_id: campaignId,
-  });
-  if (!hasPrivileges) {
-    throw new UnauthorizedError(
-      "You don't have permission to delete this campaign.",
-    );
-  }
+  // Check permissions using centralized permission system
+  // This checks if user is owner OR is superuser
+  await requireCampaignDelete(auth.userId, campaignId);
 
   // Delete the campaign
   await deleteCampaign({ id: campaignId });
@@ -119,10 +114,27 @@ export async function authGetCampaign(req: NextRequest, campaignId: number) {
   const token = getTokenFromRequest(req);
   const auth = token ? requireAuth(req) : { userId: null };
   let campaign: campaignResponseSchema;
-  campaign = await getCampaign({
-    user_id: auth.userId,
-    campaign_id: campaignId,
-  });
+  
+  // Check if user can access this campaign using centralized permissions
+  const canAccess = await canAccessCampaign(auth.userId, campaignId);
+  if (!canAccess) {
+    throw new NotFoundError("Campaign not found.");
+  }
+
+  // For superusers, fetch without authorization filters
+  // For regular users, fetch with authorization filters
+  const isSuperUserFlag = auth.userId && await isSuperUser(auth.userId);
+  
+  if (isSuperUserFlag) {
+    campaign = await getCampaignUnauthorized({
+      campaign_id: campaignId,
+    });
+  } else {
+    campaign = await getCampaign({
+      user_id: auth.userId,
+      campaign_id: campaignId,
+    });
+  }
 
   if (!campaign || campaign === null) {
     throw new NotFoundError("Campaign not found.");

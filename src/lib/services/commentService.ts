@@ -23,6 +23,10 @@ import {
   moderateCommentInput,
 } from "../schemas/comments";
 import { authGetCampaign } from "./campaignService";
+import { 
+  requireCommentDelete,
+  requireCommentModeration 
+} from "../auth/permissions";
 
 export type moderateCommentResult =
   | {
@@ -142,17 +146,9 @@ export async function authDeleteComment(req: NextRequest, campaignId: number) {
     throw new NotFoundError("Comment not found.");
   }
 
-  const hasPrivileges = await checkDeleteCommentPrivileges({
-    user_id: auth.userId,
-    campaign_id: campaignId,
-    comment_id: input.comment_id,
-  });
-
-  if (!hasPrivileges) {
-    throw new UnauthorizedError(
-      "You don't have permission to delete this comment.",
-    );
-  }
+  // Check permissions using centralized permission system
+  // This checks if user is comment creator, campaign creator, or org mod/owner (or superuser)
+  await requireCommentDelete(auth.userId, input.comment_id, campaignId);
 
   await deleteCommentByIdInCampaign({
     comment_id: input.comment_id,
@@ -203,16 +199,9 @@ export async function authModerateComment(
     throw new NotFoundError("Comment not found.");
   }
 
-  const hasPrivileges = await checkModerateCommentPrivileges({
-    user_id: auth.userId,
-    campaign_id: campaignId,
-  });
-
-  if (!hasPrivileges) {
-    throw new UnauthorizedError(
-      "You don't have permission to moderate comments for this campaign.",
-    );
-  }
+  // Check permissions using centralized permission system
+  // This checks if user is campaign creator, or org mod/owner (or superuser)
+  await requireCommentModeration(auth.userId, campaignId);
 
   if (input.comment_approval) {
     const updatedComment = await updateCommentVisibilityByIdInCampaign({

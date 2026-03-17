@@ -24,27 +24,14 @@ import {
 } from "../schemas/invite_codes";
 import { authGetOrganization } from "./organizationService";
 import { addMemberForUser } from "./memberService";
+import { requireOrganizationModeratorOrOwner } from "../auth/permissions";
 
 async function requireModeratorOrOwner(
   userId: number,
   organizationId: number,
 ) {
-  const member = await searchMemberOfOrganization({
-    user_id: userId,
-    organization_id: organizationId,
-  });
-
-  if (!member) {
-    throw new UnauthorizedError(
-      "You are not a member of this organization.",
-    );
-  }
-
-  if (!member.is_moderator && !member.is_owner) {
-    throw new UnauthorizedError(
-      "You must be a moderator or owner of this organization.",
-    );
-  }
+  // Use centralized permission system (includes superuser bypass)
+  await requireOrganizationModeratorOrOwner(userId, organizationId);
 }
 
 function generateInviteCode(): string {
