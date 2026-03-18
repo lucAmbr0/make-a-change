@@ -1,15 +1,13 @@
 import { NextRequest } from "next/server";
-import { getTokenFromRequest, requireAuth } from "../auth/auth";
+import { requireAuth } from "../auth/auth";
 import {
-  UnauthorizedError,
   ValidationError,
   NotFoundError,
-  ConflictError,
+  ConflictError
 } from "../errors/ApiError";
 import {
   addFavoriteInput,
-  removeFavoriteInput,
-  favoriteCampaignResponseSchema,
+  removeFavoriteInput
 } from "../schemas/favorites";
 import {
   insertFavorite,
@@ -17,7 +15,7 @@ import {
   getUserFavorites,
   favoriteExists,
 } from "../db/favorites";
-import { getCampaign, campaignExists, getCampaignUnauthorized } from "../db/campaigns";
+import { getCampaign, getCampaignUnauthorized } from "../db/campaigns";
 import { ZodError } from "zod";
 import { isSuperUser } from "../auth/permissions";
 
