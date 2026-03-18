@@ -3,7 +3,7 @@
 [![wakatime](https://wakatime.com/badge/github/lucAmbr0/make-a-change.svg)](https://wakatime.com/badge/github/lucAmbr0/make-a-change)
 ![Status](https://img.shields.io/badge/status-in%20development-orange)
 ![License](https://img.shields.io/badge/license-GNU%20GPL%20v3.0-yellow)
-![Lines of Code](https://img.shields.io/badge/lines-6.9k-blue)
+![Lines of Code](https://img.shields.io/badge/lines-8.7k-blue)
 ![GitHub repo size](https://img.shields.io/github/repo-size/lucAmbr0/make-a-change)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/lucAmbr0/make-a-change)
 
