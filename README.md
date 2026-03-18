@@ -3,7 +3,7 @@
 [![wakatime](https://wakatime.com/badge/github/lucAmbr0/make-a-change.svg)](https://wakatime.com/badge/github/lucAmbr0/make-a-change)
 ![Status](https://img.shields.io/badge/status-in%20development-orange)
 ![License](https://img.shields.io/badge/license-GNU%20GPL%20v3.0-yellow)
-![Lines of Code](https://img.shields.io/badge/lines-5.3k-blue)
+![Lines of Code](https://img.shields.io/badge/lines-6.1k-blue)
 ![GitHub repo size](https://img.shields.io/github/repo-size/lucAmbr0/make-a-change)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/lucAmbr0/make-a-change)
 
@@ -21,15 +21,15 @@ Instead of ideas disappearing in small circles, this platform helps them reach t
 
 # Table of Contents
 
-- [About the Project](#about-the-project)
-- [Goals](#goals)
-- [Key Features](#key-features)
-- [Screenshots](#screenshots)
-- [Tech Stack](#tech-stack)
-- [Technical Architecture](#technical-architecture)
-- [Design Process](#design-process)
-- [Backend Architecture](#backend-architecture)
-- [Project Status](#project-status)
+- [About the Project](#-about-the-project)
+- [Goals](#-goals)
+- [Key Features](#-key-features)
+- [Screenshots](#-screenshots)
+- [Tech Stack](#️-tech-stack)
+- [Technical Architecture](#️-technical-architecture)
+- [Design Process](#-design-process)
+- [Backend Architecture](#️-backend-architecture)
+- [Project Status](#-project-status)
 
 ---
 
@@ -213,7 +213,7 @@ Database
 ### Database structure:
 
 <p style="text-align: center;">
-<img src="db-schema.png" width="100%">
+<img src="public/db-schema.svg" width="100%">
 <p>
 
 ---
@@ -229,12 +229,16 @@ Database
 │   ├── /me
 │   └── /signup
 ├── /campaign
+│   ├── /favorites
 │   └── /[id]
 │       ├── /comments
+│       │   └── /[commentId]
+│       │       └── /moderation
 │       └── /signature
-├── /join
 └── /organization
+    ├── /join
     └── /[id]
+        ├── /approval_requests
         ├── /invite_codes
         └── /member
 ```

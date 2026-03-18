@@ -1,29 +1,28 @@
-/*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19-12.2.2-MariaDB, for Linux (x86_64)
---
--- Host: localhost    Database: make_a_change
--- ------------------------------------------------------
--- Server version	12.2.2-MariaDB
+-- --------------------------------------------------------
+-- Host:                         127.0.0.1
+-- Versione server:              12.2.2-MariaDB - MariaDB Server
+-- S.O. server:                  Win64
+-- HeidiSQL Versione:            12.15.0.7171
+-- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
---
--- Table structure for table `approval_requests`
---
 
+-- Dump della struttura del database make_a_change
+DROP DATABASE IF EXISTS `make_a_change`;
+CREATE DATABASE IF NOT EXISTS `make_a_change` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci */;
+USE `make_a_change`;
+
+-- Dump della struttura di tabella make_a_change.approval_requests
 DROP TABLE IF EXISTS `approval_requests`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `approval_requests` (
+CREATE TABLE IF NOT EXISTS `approval_requests` (
   `user_id` int(11) NOT NULL,
   `organization_id` int(11) NOT NULL,
   `requested_at` datetime NOT NULL,
@@ -32,31 +31,23 @@ CREATE TABLE `approval_requests` (
   CONSTRAINT `app_req_org_fk` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`),
   CONSTRAINT `app_req_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `blacklist`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.blacklist
 DROP TABLE IF EXISTS `blacklist`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `blacklist` (
+CREATE TABLE IF NOT EXISTS `blacklist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(64) NOT NULL,
   `phone` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `campaigns`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.campaigns
 DROP TABLE IF EXISTS `campaigns`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `campaigns` (
+CREATE TABLE IF NOT EXISTS `campaigns` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `organization_id` int(11) DEFAULT NULL,
   `creator_id` int(11) NOT NULL,
@@ -75,16 +66,12 @@ CREATE TABLE `campaigns` (
   CONSTRAINT `campaign_creator_fk` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`),
   CONSTRAINT `campaign_org_fk` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `comments`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.comments
 DROP TABLE IF EXISTS `comments`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `comments` (
+CREATE TABLE IF NOT EXISTS `comments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `campaign_id` int(11) NOT NULL,
@@ -96,17 +83,13 @@ CREATE TABLE `comments` (
   KEY `campaign_id` (`campaign_id`),
   CONSTRAINT `comment_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
   CONSTRAINT `comment_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Table structure for table `favorites`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.favorites
 DROP TABLE IF EXISTS `favorites`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `favorites` (
+CREATE TABLE IF NOT EXISTS `favorites` (
   `user_id` int(11) NOT NULL,
   `campaign_id` int(11) NOT NULL,
   PRIMARY KEY (`user_id`,`campaign_id`),
@@ -114,16 +97,12 @@ CREATE TABLE `favorites` (
   CONSTRAINT `fav_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fav_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `invite_codes`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.invite_codes
 DROP TABLE IF EXISTS `invite_codes`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `invite_codes` (
+CREATE TABLE IF NOT EXISTS `invite_codes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `organization_id` int(11) NOT NULL,
   `code` varchar(8) NOT NULL,
@@ -133,16 +112,12 @@ CREATE TABLE `invite_codes` (
   KEY `organization_id` (`organization_id`),
   CONSTRAINT `invite_org_fk` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `members`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.members
 DROP TABLE IF EXISTS `members`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `members` (
+CREATE TABLE IF NOT EXISTS `members` (
   `organization_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `is_moderator` tinyint(1) DEFAULT 0,
@@ -152,41 +127,27 @@ CREATE TABLE `members` (
   CONSTRAINT `member_org_fk` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`),
   CONSTRAINT `member_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `notifications`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.notifications
 DROP TABLE IF EXISTS `notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notifications` (
+CREATE TABLE IF NOT EXISTS `notifications` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `organization_target_id` int(11) DEFAULT NULL,
-  `campaign_target_id` int(11) DEFAULT NULL,
-  `user_target_id` int(11) DEFAULT NULL,
+  `target_user_id` int(11) NOT NULL,
   `title` varchar(32) NOT NULL,
   `text` text NOT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  KEY `organization_target_id` (`organization_target_id`),
-  KEY `campaign_target_id` (`campaign_target_id`),
-  KEY `user_target_id` (`user_target_id`),
-  CONSTRAINT `notif_campaign_fk` FOREIGN KEY (`campaign_target_id`) REFERENCES `campaigns` (`id`),
-  CONSTRAINT `notif_org_fk` FOREIGN KEY (`organization_target_id`) REFERENCES `organizations` (`id`),
-  CONSTRAINT `notif_user_fk` FOREIGN KEY (`user_target_id`) REFERENCES `users` (`id`)
+  KEY `user_target_id` (`target_user_id`) USING BTREE,
+  CONSTRAINT `notif_user_fk` FOREIGN KEY (`target_user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `organizations`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.organizations
 DROP TABLE IF EXISTS `organizations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `organizations` (
+CREATE TABLE IF NOT EXISTS `organizations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `creator_id` int(11) NOT NULL,
   `name` varchar(64) NOT NULL,
@@ -199,16 +160,12 @@ CREATE TABLE `organizations` (
   KEY `creator_id` (`creator_id`),
   CONSTRAINT `org_creator_fk` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `signatures`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.signatures
 DROP TABLE IF EXISTS `signatures`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `signatures` (
+CREATE TABLE IF NOT EXISTS `signatures` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `checksum` varchar(64) NOT NULL,
   `signer_id` int(11) NOT NULL,
@@ -220,16 +177,12 @@ CREATE TABLE `signatures` (
   CONSTRAINT `signature_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
   CONSTRAINT `signature_user_fk` FOREIGN KEY (`signer_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `users`
---
+-- L’esportazione dei dati non era selezionata.
 
+-- Dump della struttura di tabella make_a_change.users
 DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `first_name` varchar(32) NOT NULL,
   `last_name` varchar(32) NOT NULL,
@@ -243,19 +196,11 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping routines for database 'make_a_change'
---
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+-- L’esportazione dei dati non era selezionata.
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
-
--- Dump completed on 2026-03-11 19:06:47
+/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
