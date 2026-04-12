@@ -1,10 +1,35 @@
-:root { }
+:root {
+  --red-50: #fdf3f3;
+  --red-100: #fbe5e5;
+  --red-200: #f9cfcf;
+  --red-300: #f4adad;
+  --red-400: #ec7d7d;
+  --red-500: #e05353;
+  --red-600: #cc3636;
+  --red-700: #ab2a2a;
+  --red-800: #902727;
+  --red-900: #762626;
+  --red-950: #400f0f;
+
+  --black-50: #fafafa;
+  --black-100: #f4f4f5;
+  --black-200: #e3e3e8;
+  --black-300: #d3d3d9;
+  --black-400: #9f9fac;
+  --black-500: #6f6f7c;
+  --black-600: #50505d;
+  --black-700: #3d3d48;
+  --black-800: #26262b;
+  --black-900: #17171c;
+  --black-950: #030304;
+
+}
 
 html, body { height: 100%; }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: 'Inter';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #111;
