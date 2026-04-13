@@ -1,3 +1,39 @@
+/* ===== FONT FACE DECLARATIONS ===== */
+
+/* Inter - Regular Variable Font */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter/Inter-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+/* Inter - Italic Variable Font */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter/Inter-Italic-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+/* Playfair Display - Regular Variable Font */
+@font-face {
+  font-family: 'PlayfairDisplay';
+  src: url('/fonts/PlayfairDisplay/PlayfairDisplay-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+/* Playfair Display - Italic Variable Font */
+@font-face {
+  font-family: 'PlayfairDisplay';
+  src: url('/fonts/PlayfairDisplay/PlayfairDisplay-Italic-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+/* ===== CSS VARIABLES ===== */
+
 :root {
   --red-50: #fdf3f3;
   --red-100: #fbe5e5;
@@ -23,6 +59,9 @@
   --black-900: #17171c;
   --black-950: #030304;
 
+  /* Font Variables */
+  --font-inter: 'Inter', sans-serif;
+  --font-playfair: 'PlayfairDisplay', serif;
 }
 
 html, body { height: 100%; }
