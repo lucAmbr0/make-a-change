@@ -75,6 +75,11 @@ body {
   background: var(--accent-50);
 }
 
+::selection {
+  background: var(--accent-200);
+  color: var(--accent-950);
+}
+
 .appShell {
   min-height: 100vh;
   display: flex;
@@ -86,4 +91,54 @@ body {
   padding-bottom: 100px;
 }
 
+.pageAppear {
+  animation: page-appear 200ms ease-out both;
+}
+
+@keyframes page-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageAppear {
+    animation: none;
+  }
+}
+
 * { box-sizing: border-box; }
+
+.h1 {
+    font-size: 42px;
+    margin: 40px 0;
+    color: var(--accent-950);
+}
+.h2 {
+    font-size: 36px;
+    margin: 20px 0;
+    color: var(--accent-900);
+}
+.h3 {
+    font-size: 28px;
+    margin: 10px 0;
+    color: var(--accent-800);
+}
+
+.left {
+    text-align: left;
+}
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}

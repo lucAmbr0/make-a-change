@@ -1,0 +1,36 @@
+.paragraph {
+	font-size: 18px;
+	font-family: var(--font-inter);
+}
+
+.left {
+	text-align: left;
+}
+
+.center {
+	text-align: center;
+}
+
+.right {
+	text-align: right;
+}
+
+.justify {
+	text-align: justify;
+}
+
+.accent950 {
+	color: var(--accent-950);
+}
+
+.accent900 {
+	color: var(--accent-900);
+}
+
+.bw950 {
+	color: var(--bw-950);
+}
+
+.bw900 {
+	color: var(--bw-900);
+}

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import branding from "../components/logic/branding";
 
 export const metadata: Metadata = {
-  title: "Make a Change: Home",
+  title: "Home - " + branding.appName,
 };
 
 export default function Page() {
