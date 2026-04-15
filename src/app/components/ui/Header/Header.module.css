@@ -28,7 +28,15 @@
     display: flex;
     margin: 0;
     font-family: var(--font-playfair);
-    font-weight: bold;
+    font-weight: 800;
     font-size: 32px;
     color: var(--accent-50);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.headerTitle:hover {
+    transform: translateY(-2px);
+    text-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
 }

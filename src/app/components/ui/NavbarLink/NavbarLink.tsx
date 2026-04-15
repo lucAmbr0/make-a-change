@@ -1,14 +1,14 @@
 "use client";
+import { forwardRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import styles from './NavbarLink.module.css';
 
-export default function NavbarLink({ title, link }: { title: string, link: string }) {
-    const pathname = usePathname();
-    const isActive = link === '/' ? pathname === '/' : pathname.startsWith(link);
+function NavbarLink({ title, link, isActive }: { title: string, link: string, isActive: boolean }, ref: React.ForwardedRef<HTMLAnchorElement>) {
     const activeLinkClasses = isActive ? styles.activeLink : '';
 
-    return <Link className={`${styles.link} ${activeLinkClasses}`} href={link}>
-        {title}
+    return <Link className={`${styles.link} ${activeLinkClasses}`} href={link} ref={ref} data-text={title}>
+        <span className={styles.label}>{title}</span>
     </Link>
 }
+
+export default forwardRef(NavbarLink);
