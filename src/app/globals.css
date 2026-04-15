@@ -35,29 +35,29 @@
 /* ===== CSS VARIABLES ===== */
 
 :root {
-  --red-50: #fdf3f3;
-  --red-100: #fbe5e5;
-  --red-200: #f9cfcf;
-  --red-300: #f4adad;
-  --red-400: #ec7d7d;
-  --red-500: #e05353;
-  --red-600: #cc3636;
-  --red-700: #ab2a2a;
-  --red-800: #902727;
-  --red-900: #762626;
-  --red-950: #400f0f;
+  --accent-50: #fdf3f3;
+  --accent-100: #fbe5e5;
+  --accent-200: #f9cfcf;
+  --accent-300: #f4adad;
+  --accent-400: #ec7d7d;
+  --accent-500: #e05353;
+  --accent-600: #cc3636;
+  --accent-700: #ab2a2a;
+  --accent-800: #902727;
+  --accent-900: #762626;
+  --accent-950: #400f0f;
 
-  --black-50: #fafafa;
-  --black-100: #f4f4f5;
-  --black-200: #e3e3e8;
-  --black-300: #d3d3d9;
-  --black-400: #9f9fac;
-  --black-500: #6f6f7c;
-  --black-600: #50505d;
-  --black-700: #3d3d48;
-  --black-800: #26262b;
-  --black-900: #17171c;
-  --black-950: #030304;
+  --bw-50: #fafafa;
+  --bw-100: #f4f4f5;
+  --bw-200: #e3e3e8;
+  --bw-300: #d3d3d9;
+  --bw-400: #9f9fac;
+  --bw-500: #6f6f7c;
+  --bw-600: #50505d;
+  --bw-700: #3d3d48;
+  --bw-800: #26262b;
+  --bw-900: #17171c;
+  --bw-950: #030304;
 
   /* Font Variables */
   --font-inter: 'Inter', sans-serif;
@@ -71,8 +71,8 @@ body {
   font-family: 'Inter';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #111;
-  background: #fff;
+  color: var(--bw-900);
+  background: var(--accent-50);
 }
 
 * { box-sizing: border-box; }

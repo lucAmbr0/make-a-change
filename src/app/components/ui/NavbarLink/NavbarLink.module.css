@@ -1,0 +1,18 @@
+.link {
+    border: none;
+    border-radius: 18px;
+    display: inline-flex;
+    padding: 10px 20px;
+    background-color: transparent;
+    font-size: 24px;
+    font-family: var(--font-inter);
+    color: var(--accent-100);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.activeLink {
+    background-color: var(--accent-100);
+    color: var(--accent-900);
+    font-weight: bold;
+}

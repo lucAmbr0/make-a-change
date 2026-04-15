@@ -1,0 +1,34 @@
+.header {
+    width: 100%;
+    background-color: var(--accent-800);
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: 1fr;
+    grid-template-areas: "left center right";
+    align-items: center;
+    padding: 10px 50px;
+}
+
+#left {
+    grid-area: left;
+    justify-self: start;
+}
+
+#center {
+    grid-area: center;
+    justify-self: center;
+}
+
+#right {
+    grid-area: right;
+    justify-self: end;
+}
+
+.headerTitle {
+    display: flex;
+    margin: 0;
+    font-family: var(--font-playfair);
+    font-weight: bold;
+    font-size: 32px;
+    color: var(--accent-50);
+}
