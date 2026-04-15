@@ -1,6 +1,5 @@
 .link {
-    border: none;
-    border-radius: 18px;
+    border-bottom: 2px solid transparent;
     display: inline-flex;
     padding: 10px 20px;
     background-color: transparent;
@@ -12,7 +11,7 @@
 }
 
 .activeLink {
-    background-color: var(--accent-100);
-    color: var(--accent-900);
+    border-bottom: 2px solid var(--accent-100);
+    /* color: var(--accent-900); */
     font-weight: bold;
 }
