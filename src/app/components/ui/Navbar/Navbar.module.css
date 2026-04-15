@@ -26,3 +26,24 @@
 .activeIndicatorVisible {
     opacity: 1;
 }
+
+@media (max-width: 900px) {
+    .navbar {
+        gap: 2px;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-width: 100%;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .navbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .activeIndicator {
+        display: none;
+    }
+}

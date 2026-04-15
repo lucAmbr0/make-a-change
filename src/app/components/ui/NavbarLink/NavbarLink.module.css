@@ -34,3 +34,10 @@
 .activeLink {
     font-weight: 700;
 }
+
+@media (max-width: 900px) {
+    .link {
+        font-size: clamp(0.9rem, 3.2vw, 0.98rem);
+        padding: 6px 8px;
+    }
+}

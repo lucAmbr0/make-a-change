@@ -27,3 +27,22 @@
     text-decoration: underline;
     text-decoration-color: var(--accent-50);
 }
+
+@media (max-width: 768px) {
+    .footer {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .footer > :nth-child(1),
+    .footer > :nth-child(2),
+    .footer > :nth-child(3),
+    .footer > :nth-child(4) {
+        text-align: left;
+    }
+
+    .text {
+        line-height: 1.45;
+    }
+}

@@ -75,6 +75,14 @@ body {
   background: var(--accent-50);
 }
 
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
 ::selection {
   background: var(--accent-200);
   color: var(--accent-950);
@@ -141,4 +149,25 @@ body {
 
 .right {
     text-align: right;
+}
+
+@media (max-width: 768px) {
+  .appContent {
+    padding-bottom: 120px;
+  }
+
+  .h1 {
+    font-size: clamp(1.9rem, 7vw, 2.25rem);
+    margin: 24px 0;
+  }
+
+  .h2 {
+    font-size: clamp(1.5rem, 6vw, 1.9rem);
+    margin: 16px 0;
+  }
+
+  .h3 {
+    font-size: clamp(1.25rem, 5.4vw, 1.6rem);
+    margin: 8px 0;
+  }
 }

@@ -1,6 +1,8 @@
 .paragraph {
 	font-size: 18px;
 	font-family: var(--font-inter);
+	line-height: 1.65;
+	overflow-wrap: anywhere;
 }
 
 .left {
@@ -33,4 +35,11 @@
 
 .bw900 {
 	color: var(--bw-900);
+}
+
+@media (max-width: 768px) {
+	.paragraph {
+		font-size: 16px;
+		line-height: 1.7;
+	}
 }
