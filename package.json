@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.19.0",

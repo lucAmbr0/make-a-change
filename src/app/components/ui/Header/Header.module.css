@@ -1,27 +1,27 @@
 .header {
     width: 100%;
     background-color: var(--accent-800);
-    display: grid;
-    grid-template-columns: auto auto auto;
-    grid-template-rows: 1fr;
-    grid-template-areas: "left center right";
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 10px 50px;
+    position: relative;
 }
 
-#left {
+.leftSlot {
     grid-area: left;
     justify-self: start;
 }
 
-#center {
-    grid-area: center;
-    justify-self: center;
+.centerSlot {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-#right {
-    grid-area: right;
-    justify-self: end;
+.rightSlot {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .headerTitle {
@@ -43,26 +43,29 @@
 
 @media (max-width: 900px) {
     .header {
+        display: grid;
         grid-template-columns: auto minmax(0, 1fr);
         grid-template-areas: "left center";
-        justify-items: stretch;
         column-gap: 10px;
         row-gap: 0;
         padding: 8px 12px;
+        position: static;
     }
 
-    #left {
+    .leftSlot {
         justify-self: start;
         align-self: center;
     }
 
-    #center {
+    .centerSlot {
+        position: static;
+        transform: none;
         justify-self: stretch;
         min-width: 0;
         align-self: center;
     }
 
-    #right {
+    .rightSlot {
         display: none;
     }
 

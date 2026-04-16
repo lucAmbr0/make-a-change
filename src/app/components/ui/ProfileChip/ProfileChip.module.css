@@ -1,0 +1,26 @@
+.profileChipContainer {
+    background-color: var(--accent-100);
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    gap: 5px;
+    border: none;
+    width: fit-content;
+    justify-content: flex-start;
+}
+
+.profileIcon {
+    color: var(--accent-950);
+}
+
+.chipText {
+    font-family: var(--font-inter);
+    color: var(--accent-950);
+    width: fit-content;
+    font-size: 18px;
+    text-align: left;
+    font-weight: 500;
+    margin: 0;
+    margin-right: 10px;
+}

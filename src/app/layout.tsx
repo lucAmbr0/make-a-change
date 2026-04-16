@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Viewport } from "next";
+import UserProvider from "@/app/components/logic/UserProvider";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -10,7 +11,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body>
+        <UserProvider>{children}</UserProvider>
+      </body>
     </html>
   );
 }
