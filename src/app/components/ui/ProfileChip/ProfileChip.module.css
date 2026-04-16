@@ -8,6 +8,18 @@
     border: none;
     width: fit-content;
     justify-content: flex-start;
+    cursor: pointer;
+    transition: 0.2s ease all;
+}
+
+.profileChipContainer:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
+}
+
+.profileChipContainer:active {
+    transform: translateY(2px);
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0);
 }
 
 .profileIcon {
@@ -18,7 +30,7 @@
     font-family: var(--font-inter);
     color: var(--accent-950);
     width: fit-content;
-    font-size: 18px;
+    font-size: 16px;
     text-align: left;
     font-weight: 500;
     margin: 0;

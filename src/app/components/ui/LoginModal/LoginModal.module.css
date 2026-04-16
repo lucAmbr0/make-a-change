@@ -1,0 +1,90 @@
+.loginModal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: min(420px, 85vw);
+}
+
+.title {
+    margin: 0;
+    font-family: var(--font-playfair);
+    font-size: 28px;
+    color: var(--accent-950);
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--font-inter);
+    color: var(--accent-950);
+    font-size: 14px;
+}
+
+.field input {
+    border: 1px solid rgba(28, 27, 30, 0.14);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--accent-950);
+    background: white;
+    outline: none;
+}
+
+.field input:focus {
+    border-color: var(--accent-700);
+}
+
+.inputError {
+    border-color: #c62828 !important;
+}
+
+.errorText {
+    margin: 0;
+    color: #c62828;
+    font-size: 12px;
+}
+
+.requestError {
+    margin: 0;
+    color: #b42318;
+    font-family: var(--font-inter);
+    font-size: 13px;
+}
+
+.successText {
+    margin: 0;
+    color: #1b7f3a;
+    font-family: var(--font-inter);
+    font-size: 13px;
+}
+
+.submitButton {
+    border: none;
+    border-radius: 14px;
+    padding: 12px 16px;
+    background-color: var(--accent-800);
+    color: var(--accent-50);
+    font-family: var(--font-inter);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.submitButton:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
+.signupLink {
+    font-family: var(--font-inter);
+    font-size: 13px;
+    color: var(--accent-700);
+    text-decoration: none;
+}
