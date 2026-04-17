@@ -1,0 +1,164 @@
+.carousel {
+	position: relative;
+	/* width: 100%; */
+	/* max-width: 100%; */
+	box-sizing: border-box;
+}
+
+.horizontalViewport {
+	overflow-x: auto;
+	overflow-y: hidden;
+	max-width: 100%;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.horizontalViewport::-webkit-scrollbar {
+	display: none;
+}
+
+.horizontalTrack {
+	display: flex;
+	align-items: stretch;
+	gap: 20px;
+	width: max-content;
+	padding: 6px 0;
+}
+
+.itemWrapper {
+	flex: 0 0 auto;
+	display: flex;
+	align-self: stretch;
+	max-width: min(100%, calc(100vw - 56px));
+}
+
+.itemWrapper > * {
+	flex: 1 1 auto;
+	height: 100%;
+	max-width: 100%;
+}
+
+.arrowButton {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	border: 1px solid var(--accent-300);
+	background: var(--accent-100);
+	color: var(--accent-900);
+	width: 40px;
+	height: 40px;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	z-index: 3;
+	transition: 0.2s ease all;
+}
+
+.arrowButton:hover {
+	background: var(--accent-200);
+	border-color: var(--accent-500);
+}
+
+.leftArrow {
+	left: 8px;
+}
+
+.rightArrow {
+	right: 8px;
+}
+
+.edgeFade {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 50px;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.edgeFadeLeft {
+	left: 0;
+	background: linear-gradient(90deg, var(--accent-50) 0%, rgba(253, 243, 243, 0) 100%);
+}
+
+.edgeFadeRight {
+	right: 0;
+	background: linear-gradient(270deg, var(--accent-50) 0%, rgba(253, 243, 243, 0) 100%);
+}
+
+.verticalGrid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: stretch;
+}
+
+.showMoreArea {
+	position: relative;
+	margin-top: 8px;
+	padding-top: 18px;
+	display: flex;
+	justify-content: center;
+}
+
+.bottomFade {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 28px;
+	background: linear-gradient(180deg, rgba(253, 243, 243, 0) 0%, var(--accent-50) 100%);
+	pointer-events: none;
+}
+
+.showMoreButton {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	border: 1px solid var(--accent-300);
+	background: var(--accent-100);
+	color: var(--accent-900);
+	border-radius: 999px;
+	padding: 8px 14px;
+	font-family: var(--font-inter);
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: 0.2s ease all;
+}
+
+.showMoreButton:hover {
+	background: var(--accent-200);
+	border-color: var(--accent-500);
+}
+
+@media (max-width: 768px) {
+	.itemWrapper {
+		max-width: min(100%, calc(100vw - 44px));
+	}
+
+	.arrowButton {
+		width: 34px;
+		height: 34px;
+	}
+
+	.leftArrow {
+		left: 4px;
+	}
+
+	.rightArrow {
+		right: 4px;
+	}
+
+	.edgeFade {
+		width: 42px;
+	}
+
+	.showMoreButton {
+		width: 100%;
+		max-width: 240px;
+		justify-content: center;
+	}
+}

@@ -8,6 +8,15 @@
     position: relative;
 }
 
+.topRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+}
+
 .leftSlot {
     grid-area: left;
     justify-self: start;
@@ -44,34 +53,72 @@
 @media (max-width: 900px) {
     .header {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
-        grid-template-areas: "left center";
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "top top"
+            "center center";
         column-gap: 10px;
-        row-gap: 0;
-        padding: 8px 12px;
-        position: static;
+        row-gap: 6px;
+        padding: 8px 12px 10px;
+        position: sticky;
+        top: 0;
+        z-index: 20;
     }
 
-    .leftSlot {
-        justify-self: start;
-        align-self: center;
+    .topRow {
+        grid-area: top;
     }
 
     .centerSlot {
         position: static;
+        left: auto;
         transform: none;
-        justify-self: stretch;
+        grid-area: center;
+        width: 100%;
         min-width: 0;
-        align-self: center;
     }
 
     .rightSlot {
-        display: none;
+        grid-area: right;
+        display: flex;
+        justify-content: flex-end;
+        align-self: center;
     }
 
     .headerTitle {
         font-size: clamp(1.25rem, 5vw, 1.5rem);
         text-align: left;
         white-space: nowrap;
+    }
+}
+
+@media (max-width: 560px) {
+    .header {
+        padding: 8px 10px 9px;
+        transition: padding 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+    }
+
+    .topRow {
+        overflow: hidden;
+        max-height: 72px;
+        transition: max-height 220ms ease, opacity 180ms ease, transform 220ms ease;
+    }
+
+    .headerTitle {
+        font-size: clamp(1.05rem, 5.3vw, 1.22rem);
+    }
+
+    .headerCompact {
+        padding-top: 4px;
+        padding-bottom: 6px;
+        row-gap: 0;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+    }
+
+    .headerCompact .topRow {
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
     }
 }

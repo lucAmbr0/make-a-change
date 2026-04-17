@@ -37,6 +37,7 @@
         overflow-x: auto;
         overflow-y: hidden;
         max-width: 100%;
+        width: 100%;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
     }
@@ -47,5 +48,11 @@
 
     .activeIndicator {
         display: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .navbar {
+        gap: 2px;
     }
 }

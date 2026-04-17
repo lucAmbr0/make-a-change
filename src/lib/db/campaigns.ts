@@ -128,12 +128,18 @@ export async function getCampaign(data: {
       `
       SELECT DISTINCT
         c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
         u.first_name as creator_first_name,
         u.last_name as creator_last_name,
         o.name as organization_name
       FROM campaigns AS c
         LEFT JOIN users AS u ON c.creator_id = u.id
         LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
         LEFT JOIN members AS m 
         ON c.organization_id = m.organization_id 
         AND m.user_id = ?
@@ -178,12 +184,18 @@ export async function getCampaignUnauthorized(data: {
       `
       SELECT DISTINCT
         c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
         u.first_name as creator_first_name,
         u.last_name as creator_last_name,
         o.name as organization_name
       FROM campaigns AS c
         LEFT JOIN users AS u ON c.creator_id = u.id
         LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
       WHERE c.id = ?
       `,
       [data.campaign_id],

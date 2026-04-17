@@ -21,6 +21,7 @@ export const campaignResponseSchema = zod.object({
   id: zod.number().int(),
   organization_id: zod.number().int().nullable().optional(),
   organization_name: zod.string().max(64).nullable().optional(),
+  signatures: zod.number().int().nonnegative(),
   creator_id: zod.number().int(),
   creator_first_name: zod.string().max(32).nullable().optional(),
   creator_last_name: zod.string().max(32).nullable().optional(),

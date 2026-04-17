@@ -10,9 +10,18 @@
     transition: color 220ms ease, transform 220ms ease, text-shadow 220ms ease;
 }
 
-.link:hover {
-    transform: translateY(-2px);
-    text-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
+@media (hover: hover) and (pointer: fine) {
+    .link:hover {
+        transform: translateY(-2px);
+        text-shadow: 0 3px 2px rgba(0, 0, 0, 0.2);
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    .link:hover {
+        transform: none;
+        text-shadow: none;
+    }
 }
 
 .link::after {

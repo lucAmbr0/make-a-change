@@ -24,6 +24,7 @@ export async function GET(
       title: campaign.title,
       description: campaign.description,
       cover_path: campaign.cover_path,
+      signatures: campaign.signatures,
       creator_id: campaign.creator_id,
       creator_first_name: campaign.creator_first_name,
       creator_last_name: campaign.creator_last_name,

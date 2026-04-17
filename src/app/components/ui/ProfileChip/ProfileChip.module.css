@@ -36,3 +36,26 @@
     margin: 0;
     margin-right: 10px;
 }
+
+@media (max-width: 900px) {
+    .profileChipContainer {
+        padding: 4px 6px;
+        gap: 4px;
+    }
+
+    .chipText {
+        font-size: 14px;
+        margin-right: 6px;
+    }
+}
+
+@media (max-width: 350px) {
+    .profileChipContainer {
+        border-radius: 999px;
+        padding: 4px;
+    }
+
+    .chipText {
+        display: none;
+    }
+}
