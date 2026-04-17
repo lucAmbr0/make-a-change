@@ -1,21 +1,21 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { getTokenFromRequest, requireAuth } from "../auth/auth";
-import { NotFoundError, ValidationError } from "../errors/ApiError";
-import {
-  createOrganizationInput,
-  organizationNameSchema,
-  organizationResponseSchema,
-  organizationRowSchema,
-} from "../schemas/organization";
+import { insertMember } from "../db/members";
 import {
   getOrganization,
   getOrganizationsForUser,
   getOrganizationsNames,
   insertOrganization,
 } from "../db/organizations";
-import { insertMember } from "../db/members";
+import { NotFoundError, UnauthorizedError, ValidationError } from "../errors/ApiError";
 import { memberRowSchema } from "../schemas/members";
+import {
+  createOrganizationInput,
+  organizationNameSchema,
+  organizationResponseSchema,
+  organizationRowSchema,
+} from "../schemas/organization";
 
 export async function createOrganization(req: NextRequest) {
   const auth = requireAuth(req);

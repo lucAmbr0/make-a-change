@@ -85,7 +85,7 @@ export async function addMember(req: NextRequest, organizationId: number) {
   return member;
 }
 
-async function requireModeratorOrOwner(
+export async function requireModeratorOrOwner(
   userId: number,
   organizationId: number,
 ) {
