@@ -1,0 +1,49 @@
+.campaignSummaryContainer {
+    display: grid;
+    align-items: space-between;
+    justify-content: center;
+    grid-template-columns: 660px auto;
+    gap: 40px;
+    margin: 100px 10%;
+}
+
+.campaignSummaryImage {
+    width: 660px;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 32px;
+    border: solid 1px var(--accent-300);
+}
+
+.campaignSummaryTextContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.progressBar {
+    width: 70%;
+    margin-top: auto;
+}
+
+.campaignSummaryTextContainer h1 {
+    font-family: var(--font-playfair);
+    font-weight: 700;
+    font-size: 32px;
+    color: var(--accent-950);
+    margin: 0;
+}
+
+.campaignSummaryTextContainer h2 {
+    font-family: var(--font-playfair);
+    font-size: 24px;
+    color: var(--accent-900);
+    margin: 0;
+}
+
+.actionsContainer {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}

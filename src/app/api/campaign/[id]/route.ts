@@ -19,7 +19,7 @@ export async function GET(
     }
 
     const campaign : campaignResponseSchema = await authGetCampaign(req, campaignId);
-    return NextResponse.json({
+    return NextResponse.json(campaignResponseSchema.parse({
       id: campaign.id,
       title: campaign.title,
       description: campaign.description,
@@ -34,8 +34,9 @@ export async function GET(
       signature_goal: campaign.signature_goal,
       is_public: campaign.is_public,
       comments_active: campaign.comments_active,
-      comments_require_approval: campaign.comments_require_approval
-    }, { status: 200 });
+      comments_require_approval: campaign.comments_require_approval,
+      is_archived: campaign.is_archived,
+    }), { status: 200 });
   } catch (error) {
     // Handle known API errors
     if (error instanceof ApiError) {

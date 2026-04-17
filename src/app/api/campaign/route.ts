@@ -14,16 +14,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       campaigns.map(
         (c: campaignRowSchema) => {
+          const parsedCampaign = campaignRowSchema.parse(c);
           return {
-            id: c.id,
-            title: c.title,
-            description: c.description,
-            cover_path: c.cover_path,
-            signature_goal: c.signature_goal,
-            is_public: c.is_public,
-            comments_active: c.comments_active,
-            comments_require_approval: c.comments_require_approval,
-            created_at: c.created_at,
+            id: parsedCampaign.id,
+            title: parsedCampaign.title,
+            description: parsedCampaign.description,
+            cover_path: parsedCampaign.cover_path,
+            signature_goal: parsedCampaign.signature_goal,
+            is_public: parsedCampaign.is_public,
+            comments_active: parsedCampaign.comments_active,
+            comments_require_approval: parsedCampaign.comments_require_approval,
+            is_archived: parsedCampaign.is_archived,
+            created_at: parsedCampaign.created_at,
           };
         },
       ),
@@ -49,19 +51,21 @@ export async function POST(req: NextRequest) {
   try {
     // Create campaign
     const campaign: campaignRowSchema = await createCampaign(req);
+    const parsedCampaign = campaignRowSchema.parse(campaign);
 
     // Return success response with 201 Created
     return NextResponse.json(
       {
-        id: campaign.id,
-        title: campaign.title,
-        description: campaign.description,
-        cover_path: campaign.cover_path,
-        signature_goal: campaign.signature_goal,
-        is_public: campaign.is_public,
-        comments_active: campaign.comments_active,
-        comments_require_approval: campaign.comments_require_approval,
-        created_at: campaign.created_at,
+        id: parsedCampaign.id,
+        title: parsedCampaign.title,
+        description: parsedCampaign.description,
+        cover_path: parsedCampaign.cover_path,
+        signature_goal: parsedCampaign.signature_goal,
+        is_public: parsedCampaign.is_public,
+        comments_active: parsedCampaign.comments_active,
+        comments_require_approval: parsedCampaign.comments_require_approval,
+        is_archived: parsedCampaign.is_archived,
+        created_at: parsedCampaign.created_at,
       },
       { status: 201 },
     );

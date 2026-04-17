@@ -1,18 +1,22 @@
 import zod, { number } from "zod";
 
+const mysqlBooleanSchema = zod
+  .union([zod.boolean(), zod.literal(0), zod.literal(1)])
+  .transform((value) => value === true || value === 1);
+
 export const campaignRowSchema = zod.object({
   id: zod.number().int(),
   organization_id: zod.number().int().nullable().optional(),
   creator_id: zod.number().int(),
   title: zod.string().max(64),
   description: zod.string().nullable().optional(),
-  created_at: zod.date(),
+  created_at: zod.coerce.date(),
   cover_path: zod.string().max(64).nullable().optional(),
   signature_goal: zod.number().int().nullable().optional(),
-  is_public: zod.boolean(),
-  comments_active: zod.boolean(),
-  comments_require_approval: zod.boolean(),
-  is_archived: zod.boolean(),
+  is_public: mysqlBooleanSchema,
+  comments_active: mysqlBooleanSchema,
+  comments_require_approval: mysqlBooleanSchema,
+  is_archived: mysqlBooleanSchema,
 });
 
 export type campaignRowSchema = zod.infer<typeof campaignRowSchema>;
@@ -27,13 +31,13 @@ export const campaignResponseSchema = zod.object({
   creator_last_name: zod.string().max(32).nullable().optional(),
   title: zod.string().max(64),
   description: zod.string().nullable().optional(),
-  created_at: zod.date(),
+  created_at: zod.coerce.date(),
   cover_path: zod.string().max(64).nullable().optional(),
   signature_goal: zod.number().int().nullable().optional(),
-  is_public: zod.boolean(),
-  comments_active: zod.boolean(),
-  comments_require_approval: zod.boolean(),
-  is_archived: zod.boolean(),
+  is_public: mysqlBooleanSchema,
+  comments_active: mysqlBooleanSchema,
+  comments_require_approval: mysqlBooleanSchema,
+  is_archived: mysqlBooleanSchema,
 });
 
 export type campaignResponseSchema = zod.infer<typeof campaignResponseSchema>;
