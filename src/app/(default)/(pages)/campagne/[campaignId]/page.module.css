@@ -1,7 +1,7 @@
 .campaignSummaryContainer {
     display: grid;
     align-items: space-between;
-    justify-content: center;
+    justify-content: flex-start;
     grid-template-columns: 660px auto;
     gap: 40px;
     margin: 100px 10%;
@@ -46,4 +46,33 @@
     margin-top: 20px;
     display: flex;
     gap: 12px;
+}
+
+.campaignInfoBodyContainer {
+    margin: 100px 10%;
+}
+
+.organizationCardContainer {
+    display: flex;
+}
+
+.organizationInfoContainer {
+    display: grid;
+    align-items: space-between;
+    justify-content: flex-start;
+    /* grid-template-columns: sizeOfOrganizationCard auto; */
+    grid-template-columns: 350px auto;
+    gap: 40px;
+    margin: 100px 10%;
+}
+
+.organizationInfoText {
+    margin: 0 0;
+    h2 {
+        margin: 0 0;
+    }
+}
+
+.commentsSectionContainer {
+    margin: 100px 10%;
 }

@@ -3,7 +3,7 @@ import styles from "./Paragraph.module.css";
 type ParagraphAlignment = 'left' | 'center' | 'right' | 'justify';
 type ParagraphColor = 'accent-950' | 'accent-900' | 'bw-950' | 'bw-900';
 
-export default function Paragraph({ text, alignment = 'justify', color = 'accent-950' }: { text: string, alignment?: ParagraphAlignment, color?: ParagraphColor }) {
+export default function Paragraph({ text, alignment = 'justify', color = 'accent-950' }: { text?: string | null, alignment?: ParagraphAlignment, color?: ParagraphColor }) {
 	const alignmentClass = {
 		left: styles.left,
 		center: styles.center,
