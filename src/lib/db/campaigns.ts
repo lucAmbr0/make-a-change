@@ -119,6 +119,56 @@ export async function getCampaignsForUser(data: { user_id: number | null }) {
   }
 }
 
+export async function getCampaignsForUserWithDetails(data: { user_id: number | null }) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m 
+        ON c.organization_id = m.organization_id 
+        AND m.user_id = ?
+      WHERE c.is_public = 1
+        OR c.creator_id = ?
+        OR m.user_id IS NOT NULL
+      `,
+      [data.user_id || null, data.user_id || null],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignsForUserWithDetails:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaignsForUserWithDetails",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsForUserWithDetails:", error);
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsForUserWithDetails",
+      },
+    );
+  }
+}
+
 export async function getCampaign(data: {
   user_id: number | null;
   campaign_id: number;
@@ -290,6 +340,218 @@ export async function campaignExists(data: { campaign_id: number }) {
     throw new InternalServerError("Failed to check campaign from database", {
       operation: "campaignExists",
     });
+  }
+}
+
+export async function getCampaignsForOrganization(data: {
+  user_id: number | null;
+  organization_id: number;
+  exclude_campaign_id?: number;
+}) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m 
+        ON c.organization_id = m.organization_id 
+        AND m.user_id = ?
+      WHERE c.organization_id = ?
+        AND c.id != ?
+        AND (
+          c.is_public = 1
+          OR c.creator_id = ?
+          OR m.user_id IS NOT NULL
+        )
+      ORDER BY c.created_at DESC
+      `,
+      [data.user_id || null, data.organization_id, data.exclude_campaign_id || 0, data.user_id || null],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignsForOrganization:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaignsForOrganization",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsForOrganization:", error);
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsForOrganization",
+      },
+    );
+  }
+}
+
+export async function getCampaignsBySignatures(data: { user_id: number | null }) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m 
+        ON c.organization_id = m.organization_id 
+        AND m.user_id = ?
+      WHERE c.is_public = 1
+        OR c.creator_id = ?
+        OR m.user_id IS NOT NULL
+      ORDER BY COALESCE(sc.signatures, 0) DESC
+      LIMIT 15
+      `,
+      [data.user_id || null, data.user_id || null],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignsBySignatures:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaignsBySignatures",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsBySignatures:", error);
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsBySignatures",
+      },
+    );
+  }
+}
+
+export async function getCampaignsFromUserOrganizations(data: { user_id: number }) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        INNER JOIN members AS m 
+        ON c.organization_id = m.organization_id 
+        AND m.user_id = ?
+      WHERE (c.is_public = 1 OR c.creator_id = ? OR m.is_moderator = 1 OR m.is_owner = 1)
+      ORDER BY c.created_at DESC
+      LIMIT 15
+      `,
+      [data.user_id, data.user_id],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignsFromUserOrganizations:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaignsFromUserOrganizations",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsFromUserOrganizations:", error);
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsFromUserOrganizations",
+      },
+    );
+  }
+}
+
+export async function getCampaignsWithoutOrganization(data: { user_id: number | null }) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m 
+        ON c.organization_id = m.organization_id 
+        AND m.user_id = ?
+      WHERE c.organization_id IS NULL
+        AND (c.is_public = 1 OR c.creator_id = ? OR m.user_id IS NOT NULL)
+      ORDER BY c.created_at DESC
+      LIMIT 15
+      `,
+      [data.user_id || null, data.user_id || null],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignsWithoutOrganization:", error);
+      throw new InternalServerError(
+        "Failed to get campaigns. Please ensure all provided organization and campaign data are valid.",
+        {
+          operation: "getCampaignsWithoutOrganization",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsWithoutOrganization:", error);
+    throw new InternalServerError(
+      "Failed to retrieve campaigns from database",
+      {
+        operation: "getCampaignsWithoutOrganization",
+      },
+    );
   }
 }
 

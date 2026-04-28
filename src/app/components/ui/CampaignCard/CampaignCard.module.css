@@ -11,6 +11,8 @@
     min-height: 420px;
     cursor: pointer;
     transition: transform 220ms ease, box-shadow 220ms ease;
+    text-decoration: none;
+    color: inherit;
 }
 
 .card:hover {

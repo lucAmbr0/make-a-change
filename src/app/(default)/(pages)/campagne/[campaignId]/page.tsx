@@ -10,9 +10,12 @@ import Paragraph from "@/app/components/ui/Typography/Paragraph/Paragraph";
 import Title from "@/app/components/ui/Typography/Title/Title";
 import { campaignResponseSchema } from "@/lib/schemas/campaigns";
 import { organizationResponseSchema } from "@/lib/schemas/organization";
+import { commentResponseSchema } from "@/lib/schemas/comments";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import CommentBox from "@/app/components/ui/CommentBox/CommentBox";
+import { getCampaignsFromSameOrganization } from "@/lib/services/campaignService";
+import { NextRequest } from "next/server";
 
 async function getCampaign(campaignId: number) {
     const requestHeaders = await headers();
@@ -41,6 +44,32 @@ async function getCampaign(campaignId: number) {
 
     const data = await response.json();
     return campaignResponseSchema.parse(data);
+}
+
+async function getCampaignComments(campaignId: number) {
+    const requestHeaders = await headers();
+    const cookieStore = await cookies();
+    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+    const host = requestHeaders.get("host");
+
+    if (!host) {
+        throw new Error("Unable to resolve request host for comments fetch");
+    }
+
+    const response = await fetch(`${protocol}://${host}/api/campaign/${campaignId}/comments`, {
+        cache: "no-store",
+        headers: {
+            cookie: cookieStore.toString(),
+        },
+    });
+
+    if (!response.ok) {
+        console.error(`Failed to load comments for campaign ${campaignId}`);
+        return [];
+    }
+
+    const data = await response.json();
+    return data as commentResponseSchema[];
 }
 
 async function getOrganization(organizationId: number) {
@@ -80,6 +109,25 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
 
     const campaign = await getCampaign(parsedCampaignId);
     const organization = campaign.organization_id ? await getOrganization(campaign.organization_id) : null;
+    const comments = await getCampaignComments(parsedCampaignId);
+    
+    // Fetch campaigns from the same organization if it exists
+    let relatedCampaigns: campaignResponseSchema[] = [];
+    if (campaign.organization_id) {
+        try {
+            const req = {
+                headers: await headers(),
+                cookies: await cookies(),
+            } as unknown as NextRequest;
+            relatedCampaigns = await getCampaignsFromSameOrganization(req, campaign.organization_id, parsedCampaignId);
+        } catch (error) {
+            console.error("Failed to fetch related campaigns:", error);
+        }
+    }
+
+    const relatedCampaignCards = relatedCampaigns.map((campaignItem) => (
+        <CampaignCard key={campaignItem.id} campaign={campaignItem} href={`/campagne/${campaignItem.id}`} />
+    ));
 
     return <>
         <div className={styles.campaignSummaryContainer}>
@@ -118,20 +166,24 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                 <AddCommentBox />
             </div>
             <div className={styles.commentsContainer}>
-                <CommentBox authorName="oba" commentText="oba oba oba" />
-                <CommentBox authorName="oba" commentText="oba oba oba" />
-                <CommentBox authorName="oba" commentText="oba oba oba" />
-                <CommentBox authorName="oba" commentText="oba oba oba" />
-                <CommentBox authorName="oba" commentText="oba oba oba" />
+                {comments.map((comment) => (
+                    <CommentBox
+                        key={comment.id}
+                        authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
+                        commentText={comment.text}
+                    />
+                ))}
             </div>
         </div>
-        <div className={styles.commentsSectionContainer}>
-            <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
-            <Carousel
-                direction="horizontal"
-                items={placeholders.sampleCampaigns.map((campaign) => <CampaignCard key={campaign.id} campaign={campaign} />)}
-            />
-        </div>
+        {organization && relatedCampaigns.length > 0 &&
+            <div className={styles.commentsSectionContainer}>
+                <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
+                <Carousel
+                    direction="horizontal"
+                    items={relatedCampaignCards}
+                />
+            </div>
+        }
 
     </>
 }

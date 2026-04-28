@@ -15,6 +15,11 @@ import {
   checkDeleteCampaignPrivileges,
   deleteCampaign,
   getCampaignsForUser,
+  getCampaignsForUserWithDetails,
+  getCampaignsForOrganization,
+  getCampaignsBySignatures,
+  getCampaignsFromUserOrganizations,
+  getCampaignsWithoutOrganization,
   insertCampaign,
   campaignExists,
   getCampaign,
@@ -89,6 +94,14 @@ export async function getAuthorizedCampaings(req: NextRequest) {
   return campaigns;
 }
 
+export async function getAuthorizedCampaignsWithDetails(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  let campaigns: campaignResponseSchema[];
+  campaigns = await getCampaignsForUserWithDetails({ user_id: auth.userId });
+  return campaigns;
+}
+
 export async function authDeleteCampaign(req: NextRequest, campaignId: number) {
   const auth = requireAuth(req);
 
@@ -141,4 +154,58 @@ export async function authGetCampaign(req: NextRequest, campaignId: number) {
   }
 
   return campaign;
+}
+
+export async function getCampaignsFromSameOrganization(
+  req: NextRequest,
+  organizationId: number,
+  excludeCampaignId: number,
+) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  
+  const campaigns: campaignResponseSchema[] = await getCampaignsForOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+    exclude_campaign_id: excludeCampaignId,
+  });
+
+  return campaigns;
+}
+
+export async function getFeaturedCampaigns(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  
+  const campaigns: campaignResponseSchema[] = await getCampaignsBySignatures({
+    user_id: auth.userId,
+  });
+
+  return campaigns;
+}
+
+export async function getUserOrganizationsCampaigns(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  
+  if (!auth.userId) {
+    return [];
+  }
+
+  const campaigns: campaignResponseSchema[] = await getCampaignsFromUserOrganizations({
+    user_id: auth.userId,
+  });
+
+  return campaigns;
+}
+
+export async function getIndependentCampaigns(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  const auth = token ? requireAuth(req) : { userId: null };
+  
+  const campaigns: campaignResponseSchema[] = await getCampaignsWithoutOrganization({
+    user_id: auth.userId,
+  });
+
+  return campaigns;
 }
