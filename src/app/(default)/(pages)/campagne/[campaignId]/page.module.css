@@ -76,3 +76,8 @@
 .commentsSectionContainer {
     margin: 100px 10%;
 }
+
+.addCommentBox {
+    width: 600px;
+    max-width: 75%;
+}

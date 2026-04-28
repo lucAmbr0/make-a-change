@@ -1,10 +1,10 @@
 import { organizationResponseSchema } from '@/lib/schemas/organization';
-import placeholders from '../../logic/placeholders';
 import styles from './OrganizationCard.module.css';
 import { Icon } from '@iconify/react';
+import placeholders from '../../logic/placeholders';
 
 export default function OrganizationCard({ organization: organization }: { organization: organizationResponseSchema }) {
-    const imageSrc = organization && organization.cover_path && organization.cover_path.trim() ? organization.cover_path : placeholders.organizationPlaceholderImage;
+    const imageSrc = organization && organization.cover_path && organization.cover_path.trim() ? organization.cover_path : placeholders.campaignPlaceholderImage;
 
     return (
         <div className={styles.card}>
@@ -14,7 +14,7 @@ export default function OrganizationCard({ organization: organization }: { organ
             <div className={styles.statsContainer}>
                 <Icon icon={'material-symbols:diversity-3'} width="18" height="18" />
                 <p>{10} membri</p>
-                <Icon icon={'material-symbols:docs'} width="18" height="18" />
+                <Icon icon={'material-symbols:docs-outline'} width="18" height="18" />
                 <p>{20} campagne</p>
             </div>
         </div>

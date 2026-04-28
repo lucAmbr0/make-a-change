@@ -1,4 +1,5 @@
 import styles from "./page.module.css";
+import AddCommentBox from "@/app/components/ui/AddCommentBox/AddCommentBox";
 import placeholders from "@/app/components/logic/placeholders";
 import Button from "@/app/components/ui/Button/Button";
 import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
@@ -112,6 +113,9 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
         }
         <div className={styles.commentsSectionContainer}>
             <Title text="Commenti" hierarchy={2} />
+            <div className={styles.addCommentBox}>
+                <AddCommentBox />
+            </div>
         </div>
         <div className={styles.commentsSectionContainer}>
             <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />

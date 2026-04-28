@@ -15,6 +15,11 @@ export const organizationRowSchema = zod.object({
     .max(65535, "Description is too long")
     .nullable()
     .optional(),
+  category: zod
+    .string()
+    .max(64)
+    .nullable()
+    .optional(),
   created_at: zod.string().pipe(zod.coerce.date()),
   cover_path: zod
     .string({ message: "Cover path must be a string" })
@@ -36,6 +41,7 @@ export const organizationResponseSchema = zod.object({
   creator_last_name: zod.string().max(32).nullable().optional(),
   name: zod.string().max(64),
   description: zod.string().max(65535).nullable().optional(),
+  category: zod.string().max(64).nullable().optional(),
   created_at: zod.string().pipe(zod.coerce.date()),
   cover_path: zod.string().max(64).nullable().optional(),
   is_public: zod.boolean().or(zod.number()).transform(val => Boolean(val)),
@@ -55,6 +61,11 @@ export const createOrganizationInput = zod.object({
   description: zod
     .string({ message: "Description must be a string" })
     .max(65535, "Description is too long")
+    .nullable()
+    .optional(),
+  category: zod
+    .string({ message: "Category must be a string" })
+    .max(64, "Category is too long")
     .nullable()
     .optional(),
   cover_path: zod

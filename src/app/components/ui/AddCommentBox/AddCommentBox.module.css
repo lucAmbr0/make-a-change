@@ -1,0 +1,49 @@
+.container {
+    display: grid;
+    background-color: var(--accent-100);
+    border: solid 1px var(--accent-300);
+    border-radius: 24px 24px 24px 4px;
+    grid-template-columns: 1fr 24px;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 10px 20px;
+    gap: 20px;
+}
+
+.input {
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    font-family: var(--font-inter);
+    color: var(--accent-950);
+    width: 100%;
+    height: 24px;
+    resize: vertical;
+    min-height: 24px;
+    max-height: 200px;
+}
+.input::placeholder {
+    color: var(--accent-950);
+    opacity: 0.8;
+}
+
+.button {
+    color: var(--accent-950);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    padding: 0;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.icon {
+    margin: 0;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+}
