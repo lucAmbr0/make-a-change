@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS `organizations` (
   `cover_path` varchar(64) DEFAULT NULL,
   `is_public` tinyint(1) NOT NULL DEFAULT 1,
   `requires_approval` tinyint(1) NOT NULL DEFAULT 0,
+  `category` varchar(64) DEFAULT 'Altre iniziative',
   PRIMARY KEY (`id`),
   KEY `creator_id` (`creator_id`),
   CONSTRAINT `org_creator_fk` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`)
