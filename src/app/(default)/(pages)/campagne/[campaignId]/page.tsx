@@ -12,6 +12,7 @@ import { campaignResponseSchema } from "@/lib/schemas/campaigns";
 import { organizationResponseSchema } from "@/lib/schemas/organization";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
+import CommentBox from "@/app/components/ui/CommentBox/CommentBox";
 
 async function getCampaign(campaignId: number) {
     const requestHeaders = await headers();
@@ -116,6 +117,13 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
             <div className={styles.addCommentBox}>
                 <AddCommentBox />
             </div>
+            <div className={styles.commentsContainer}>
+                <CommentBox authorName="oba" commentText="oba oba oba" />
+                <CommentBox authorName="oba" commentText="oba oba oba" />
+                <CommentBox authorName="oba" commentText="oba oba oba" />
+                <CommentBox authorName="oba" commentText="oba oba oba" />
+                <CommentBox authorName="oba" commentText="oba oba oba" />
+            </div>
         </div>
         <div className={styles.commentsSectionContainer}>
             <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
@@ -124,6 +132,6 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                 items={placeholders.sampleCampaigns.map((campaign) => <CampaignCard key={campaign.id} campaign={campaign} />)}
             />
         </div>
-        
+
     </>
 }

@@ -80,4 +80,14 @@
 .addCommentBox {
     width: 600px;
     max-width: 75%;
+    margin-bottom: 30px;
+}
+
+.commentsContainer {
+    width: 600px;
+    max-width: 75%;
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
