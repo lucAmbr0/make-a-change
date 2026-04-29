@@ -475,11 +475,10 @@ export async function getCampaignsFromUserOrganizations(data: { user_id: number 
         INNER JOIN members AS m 
         ON c.organization_id = m.organization_id 
         AND m.user_id = ?
-      WHERE (c.is_public = 1 OR c.creator_id = ? OR m.is_moderator = 1 OR m.is_owner = 1)
       ORDER BY c.created_at DESC
       LIMIT 15
       `,
-      [data.user_id, data.user_id],
+        [data.user_id],
     );
 
     return rows;

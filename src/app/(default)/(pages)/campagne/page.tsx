@@ -4,7 +4,6 @@ import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
 import Carousel from "@/app/components/ui/Carousel/Carousel";
 import type { Metadata } from "next";
 import Title from "@/app/components/ui/Typography/Title/Title";
-import { campaignResponseSchema } from "@/lib/schemas/campaigns";
 import { cookies, headers } from "next/headers";
 import { getFeaturedCampaigns, getUserOrganizationsCampaigns, getIndependentCampaigns } from "@/lib/services/campaignService";
 import { NextRequest } from "next/server";

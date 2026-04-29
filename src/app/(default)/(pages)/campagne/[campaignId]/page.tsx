@@ -128,7 +128,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
 
     const campaign = await getCampaign(parsedCampaignId);
     const organization = campaign.organization_id ? await getOrganization(campaign.organization_id) : null;
-    const comments = await getCampaignComments(parsedCampaignId);
+    const comments = campaign.comments_active ? await getCampaignComments(parsedCampaignId) : [];
     
     // Fetch campaigns from the same organization if it exists
     let relatedCampaigns: campaignResponseSchema[] = [];
@@ -179,26 +179,28 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                 </div>
             </div>
         }
-        <div className={styles.commentsSectionContainer}>
-            <Title text="Commenti" hierarchy={2} />
-            <div className={styles.addCommentBox}>
-                <AddCommentBox />
+        {campaign.comments_active ? (
+            <div className={styles.commentsSectionContainer}>
+                <Title text="Commenti" hierarchy={2} />
+                <div className={styles.addCommentBox}>
+                    <AddCommentBox />
+                </div>
+                <div className={styles.commentsContainer}>
+                    {comments.map((comment) => (
+                        <CommentBox
+                            key={comment.id}
+                            authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
+                            commentText={comment.text}
+                            commentId={comment.id}
+                            authorId={comment.user_id}
+                            campaignId={parsedCampaignId}
+                            campaignCreatorId={campaign.creator_id}
+                            organizationId={campaign.organization_id ?? undefined}
+                        />
+                    ))}
+                </div>
             </div>
-            <div className={styles.commentsContainer}>
-                {comments.map((comment) => (
-                    <CommentBox
-                        key={comment.id}
-                        authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
-                        commentText={comment.text}
-                        commentId={comment.id}
-                        authorId={comment.user_id}
-                        campaignId={parsedCampaignId}
-                        campaignCreatorId={campaign.creator_id}
-                        organizationId={campaign.organization_id ?? undefined}
-                    />
-                ))}
-            </div>
-        </div>
+        ) : null}
         {organization && relatedCampaigns.length > 0 &&
             <div className={styles.commentsSectionContainer}>
                 <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
