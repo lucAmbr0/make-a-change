@@ -5,12 +5,19 @@
     padding: 20px;
 }
 
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
 .authorName {
     font-family: var(--font-inter);
     font-size: 18px;
     color: var(--accent-900);
     margin: 0;
-    margin-bottom: 20px;
 }
 
 .commentText {
@@ -19,4 +26,34 @@
     text-align: justify;
     margin: 0;
     color: var(--accent-950);
+}
+
+.deleteButton {
+    color: var(--accent-950);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    aspect-ratio: 1/1;
+    border-radius: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.25s ease all;
+    padding: 6px;
+}
+
+.deleteButton:hover {
+    background-color: var(--accent-200);
+}
+
+.icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+.errorText {
+    display: block;
+    margin-top: 8px;
+    color: var(--accent-error, #b00020);
 }

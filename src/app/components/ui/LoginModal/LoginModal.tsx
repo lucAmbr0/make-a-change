@@ -101,8 +101,8 @@ export default function LoginModal({
             setSuccessMessage("Accesso effettuato");
             setPassword("");
             setTimeout(() => {
-                onClose();
-            }, 400);
+                window.location.reload();
+            }, 600);
         } catch {
             setRequestError("Errore di rete, riprova");
         } finally {

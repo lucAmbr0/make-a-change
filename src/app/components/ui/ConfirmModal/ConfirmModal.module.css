@@ -1,0 +1,21 @@
+.title {
+  margin: 0 0 12px 0;
+  font-family: var(--font-inter);
+  color: var(--accent-900);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.description {
+  margin: 0 0 20px 0;
+  color: var(--accent-800);
+  font-family: var(--font-inter);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

@@ -171,6 +171,11 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                         key={comment.id}
                         authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
                         commentText={comment.text}
+                        commentId={comment.id}
+                        authorId={comment.user_id}
+                        campaignId={parsedCampaignId}
+                        campaignCreatorId={campaign.creator_id}
+                        organizationId={campaign.organization_id ?? undefined}
                     />
                 ))}
             </div>

@@ -57,3 +57,17 @@
     height: 24px;
     font-size: 24px;
 }
+
+.feedback {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.errorText {
+    color: var(--accent-500);
+}
+
+.successText {
+    color: var(--accent-950);
+}
