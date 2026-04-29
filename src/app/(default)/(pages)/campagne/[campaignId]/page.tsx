@@ -16,6 +16,8 @@ import { notFound } from "next/navigation";
 import CommentBox from "@/app/components/ui/CommentBox/CommentBox";
 import { getCampaignsFromSameOrganization } from "@/lib/services/campaignService";
 import { NextRequest } from "next/server";
+import { Metadata } from "next";
+import branding from "@/app/components/logic/branding";
 
 async function getCampaign(campaignId: number) {
     const requestHeaders = await headers();
@@ -95,6 +97,23 @@ async function getOrganization(organizationId: number) {
 
     const data = await response.json();
     return organizationResponseSchema.parse(data);
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ campaignId: string }> }): Promise<Metadata> {
+    const { campaignId } = await params;
+    const parsedCampaignId = Number.parseInt(campaignId, 10);
+
+    if (Number.isNaN(parsedCampaignId)) {
+        return {
+            title: branding.appName,
+        };
+    }
+
+    const campaign = await getCampaign(parsedCampaignId);
+
+    return {
+        title: `${campaign.title} - ${branding.appName}`,
+    };
 }
 
 export const dynamic = "force-dynamic";
