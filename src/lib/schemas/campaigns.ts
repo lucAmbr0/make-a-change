@@ -11,7 +11,7 @@ export const campaignRowSchema = zod.object({
   title: zod.string().max(64),
   description: zod.string().nullable().optional(),
   created_at: zod.coerce.date(),
-  cover_path: zod.string().max(64).nullable().optional(),
+  cover_path: zod.string().max(2048).nullable().optional(),
   signature_goal: zod.number().int().nullable().optional(),
   is_public: mysqlBooleanSchema,
   comments_active: mysqlBooleanSchema,
@@ -32,7 +32,7 @@ export const campaignResponseSchema = zod.object({
   title: zod.string().max(64),
   description: zod.string().nullable().optional(),
   created_at: zod.coerce.date(),
-  cover_path: zod.string().max(64).nullable().optional(),
+  cover_path: zod.string().max(2048).nullable().optional(),
   signature_goal: zod.number().int().nullable().optional(),
   is_public: mysqlBooleanSchema,
   comments_active: mysqlBooleanSchema,
@@ -56,7 +56,7 @@ export const createCampaignInput = zod.object({
     .optional(),
   cover_path: zod
     .string({ message: "Cover path must be a string" })
-    .max(64, "Cover path cannot exceed 64 characters")
+    .max(2048, "Cover path cannot exceed 2048 characters")
     .nullable()
     .optional(),
   signature_goal: zod

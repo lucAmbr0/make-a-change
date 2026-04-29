@@ -23,7 +23,7 @@ export const organizationRowSchema = zod.object({
   created_at: zod.string().pipe(zod.coerce.date()),
   cover_path: zod
     .string({ message: "Cover path must be a string" })
-    .max(64, "Cover path cannot exceed 64 characters")
+    .max(2048, "Cover path cannot exceed 2048 characters")
     .nullable()
     .optional(),
   is_public: zod.boolean().or(zod.number()).transform(val => Boolean(val)),
@@ -43,7 +43,7 @@ export const organizationResponseSchema = zod.object({
   description: zod.string().max(65535).nullable().optional(),
   category: zod.string().max(64).nullable().optional(),
   created_at: zod.string().pipe(zod.coerce.date()),
-  cover_path: zod.string().max(64).nullable().optional(),
+  cover_path: zod.string().max(2048).nullable().optional(),
   is_public: zod.boolean().or(zod.number()).transform(val => Boolean(val)),
   requires_approval: zod.boolean().or(zod.number()).transform(val => Boolean(val)),
 });
@@ -70,7 +70,7 @@ export const createOrganizationInput = zod.object({
     .optional(),
   cover_path: zod
     .string({ message: "Cover path must be a string" })
-    .max(64, "Cover path cannot exceed 64 characters")
+    .max(2048, "Cover path cannot exceed 2048 characters")
     .nullable()
     .optional(),
   is_public: zod.boolean({ message: "Visibility flag must be true or false" }),
