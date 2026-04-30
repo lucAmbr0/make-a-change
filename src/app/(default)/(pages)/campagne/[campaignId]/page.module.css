@@ -2,15 +2,17 @@
     display: grid;
     align-items: space-between;
     justify-content: flex-start;
-    grid-template-columns: 660px auto;
+    grid-template-columns: minmax(0, 660px) auto;
     gap: 40px;
     margin: 100px 10%;
     overflow: hidden;
 }
 
 .campaignSummaryImageContainer {
-    width: 660px;
-    height: 400px;
+    width: 100%;
+    max-width: 660px;
+    aspect-ratio: 660 / 400;
+    height: auto;
     border-radius: 32px;
     border: solid 1px var(--accent-300);
     overflow: hidden;
@@ -18,8 +20,8 @@
 }
 
 .campaignSummaryImage {
-    width: 660px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: 32px;
     transition: transform 0.35s ease;
@@ -106,4 +108,61 @@
     display: flex;
     flex-direction: column-reverse;
     gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .campaignSummaryContainer {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        margin: 40px 16px;
+    }
+
+    .campaignSummaryImageContainer {
+        max-width: 100%;
+        border-radius: 24px;
+    }
+
+    .campaignSummaryImage {
+        border-radius: 24px;
+    }
+
+    .campaignSummaryTextContainer {
+        padding: 0;
+    }
+
+    .campaignSummaryTextContainer h1 {
+        font-size: 26px;
+    }
+
+    .campaignSummaryTextContainer h2 {
+        font-size: 20px;
+    }
+
+    .progressBar {
+        width: 100%;
+    }
+
+    .actionsContainer {
+        flex-wrap: wrap;
+    }
+
+    .campaignInfoBodyContainer,
+    .commentsSectionContainer {
+        margin: 50px 16px;
+    }
+
+    .organizationInfoContainer {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        margin: 50px 16px;
+    }
+
+    .organizationCardContainer {
+        justify-content: center;
+    }
+
+    .addCommentBox {
+        width: 100%;
+        max-width: 100%;
+    }
 }

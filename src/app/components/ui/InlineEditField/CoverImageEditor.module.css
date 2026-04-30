@@ -1,0 +1,142 @@
+.wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 32px;
+    overflow: hidden;
+}
+
+.hoverOverlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    cursor: pointer;
+    color: var(--accent-50);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    font-family: var(--font-inter);
+}
+
+.hoverOverlay:hover,
+.hoverOverlay:focus {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.45);
+    outline: none;
+}
+
+.hoverLabel {
+    font-size: 16px;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.editorPanel {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.editorLabel {
+    color: var(--accent-50);
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.editorInput {
+    width: 100%;
+    background-color: var(--accent-50);
+    border: solid 1px var(--accent-400);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--font-inter);
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.editorInput:focus {
+    outline: none;
+    border-color: var(--accent-700);
+}
+
+.editorActions {
+    display: flex;
+    gap: 8px;
+}
+
+.actionButton {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+}
+
+.saveButton {
+    background-color: var(--accent-50);
+    color: var(--accent-950);
+}
+
+.saveButton:hover:not(:disabled) {
+    background-color: var(--accent-100);
+}
+
+.cancelButton {
+    background-color: transparent;
+    color: var(--accent-50);
+    border: solid 1px var(--accent-300);
+}
+
+.cancelButton:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.actionButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.errorText {
+    color: var(--accent-200);
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .wrapper {
+        border-radius: 24px;
+    }
+
+    .hoverLabel {
+        font-size: 14px;
+        text-align: center;
+        padding: 0 12px;
+    }
+
+    .editorPanel {
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .editorInput {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+}

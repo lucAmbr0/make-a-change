@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "./CommentBox.module.css";
 import ConfirmModal from "@/app/components/ui/ConfirmModal/ConfirmModal";
 import LoginModal from "@/app/components/ui/LoginModal/LoginModal";
 import { useUser } from "@/app/components/logic/UserProvider";
+import { apiFetch, ApiClientError } from "@/lib/api/client";
+import { useApiAction } from "@/lib/api/useApiAction";
 import { Icon } from "@iconify/react";
+import { useRouter } from "next/navigation";
 
 export default function CommentBox({
     authorName = "Anonimo",
@@ -13,96 +16,47 @@ export default function CommentBox({
     commentId,
     authorId,
     campaignId,
-    campaignCreatorId,
-    organizationId,
+    canDelete,
 }: {
     authorName?: string;
     commentText: string;
     commentId: number;
     authorId: number;
     campaignId: number;
-    campaignCreatorId?: number;
-    organizationId?: number;
+    canDelete: boolean;
 }) {
-    const { user, isLoading } = useUser();
+    const { user } = useUser();
+    const router = useRouter();
     const [showConfirm, setShowConfirm] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [requestError, setRequestError] = useState("");
     const [deleted, setDeleted] = useState(false);
-    const [isOrgModeratorOrOwner, setIsOrgModeratorOrOwner] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
 
     const isOwner = Boolean(user && user.id === authorId);
-    const isCampaignCreator = Boolean(user && campaignCreatorId && user.id === campaignCreatorId);
-    const canDelete = Boolean(isOwner || isCampaignCreator || isOrgModeratorOrOwner);
 
-    async function handleDelete() {
-        setRequestError("");
-        if (!campaignId) {
-            setRequestError("Impossibile risolvere l'ID della campagna");
-            return;
-        }
-
-        setIsDeleting(true);
-        try {
-            const resp = await fetch(`/api/campaign/${campaignId}/comments`, {
+    const deleteComment = useApiAction(
+        async () =>
+            apiFetch(`/api/campaign/${campaignId}/comments`, {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ comment_id: commentId }),
-            });
-
-            if (resp.status === 401) {
-                // not authenticated — open login modal
-                setIsLoginOpen(true);
-                return;
-            }
-
-            if (!resp.ok) {
-                const payload = await resp.json().catch(() => ({}));
-                setRequestError(payload?.message || "Errore durante la cancellazione");
-                return;
-            }
-
-            setDeleted(true);
-        } catch (err) {
-            setRequestError("Errore di rete, riprova");
-        } finally {
-            setIsDeleting(false);
-            setShowConfirm(false);
-        }
-    }
-
-    useEffect(() => {
-        let mounted = true;
-        async function fetchMembership() {
-            if (!organizationId || !user) return;
-            try {
-                const resp = await fetch(`/api/organization/${organizationId}/member/me`, {
-                    method: "GET",
-                    credentials: "include",
-                });
-                if (!mounted) return;
-                if (resp.status === 401) return; // not logged in
-                if (!resp.ok) return;
-                const data = await resp.json().catch(() => ({}));
-                if (data?.is_member && (data.is_owner || data.is_moderator)) {
-                    setIsOrgModeratorOrOwner(true);
+                body: { comment_id: commentId },
+            }),
+        {
+            onSuccess: () => {
+                setDeleted(true);
+                setShowConfirm(false);
+                router.refresh();
+            },
+            onError: (err) => {
+                if (err instanceof ApiClientError && err.status === 401) {
+                    setIsLoginOpen(true);
                 }
-            } catch (e) {
-                // ignore
-            }
-        }
-
-        void fetchMembership();
-        return () => {
-            mounted = false;
-        };
-    }, [organizationId, user]);
+            },
+        },
+    );
 
     if (deleted) return null;
 
     const containerClassName = isOwner ? styles.userComment : styles.otherComment;
+    const showError = deleteComment.error && deleteComment.status !== 401;
 
     return (
         <>
@@ -114,8 +68,8 @@ export default function CommentBox({
                             className={styles.deleteButton}
                             onClick={() => setShowConfirm(true)}
                             type="button"
-                            disabled={isDeleting}
-                            aria-disabled={isDeleting}
+                            disabled={deleteComment.isLoading}
+                            aria-disabled={deleteComment.isLoading}
                             aria-label="Elimina commento"
                         >
                             <Icon icon={"material-symbols:delete-outline"} width={24} height={24} />
@@ -123,15 +77,15 @@ export default function CommentBox({
                     )}
                 </div>
                 <p className={styles.commentText}>{commentText}</p>
-                {requestError ? <small className={styles.errorText}>{requestError}</small> : null}
+                {showError ? <small className={styles.errorText}>{deleteComment.error}</small> : null}
             </div>
 
             <ConfirmModal
                 open={showConfirm}
                 title="Eliminare il commento?"
                 description="Questa azione è permanente. Vuoi procedere?"
-                confirmLabel={isDeleting ? "Eliminazione..." : "Elimina"}
-                onConfirm={handleDelete}
+                confirmLabel={deleteComment.isLoading ? "Eliminazione..." : "Elimina"}
+                onConfirm={deleteComment.run}
                 onClose={() => setShowConfirm(false)}
             />
 

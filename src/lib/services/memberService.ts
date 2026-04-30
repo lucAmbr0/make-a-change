@@ -1,12 +1,8 @@
-import { NextRequest } from "next/server";
-import { ZodError } from "zod";
-import { getTokenFromRequest, requireAuth } from "../auth/auth";
+import { getOptionalAuth, requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
+import { NotFoundError, ValidationError } from "../errors/ApiError";
 import {
-  NotFoundError,
-  UnauthorizedError,
-  ValidationError,
-} from "../errors/ApiError";
-import {
+  deleteMember,
   getMembersCount,
   getMembersList,
   insertMember,
@@ -14,22 +10,20 @@ import {
 } from "../db/members";
 import {
   createMemberInput,
+  deleteMemberInput,
   memberResponseSchema,
   memberRowSchema,
 } from "../schemas/members";
 import { getOrganization } from "../db/organizations";
 import { organizationResponseSchema } from "../schemas/organization";
-import { 
-  requireOrganizationModeratorOrOwner,
-  isSuperUser 
-} from "../auth/permissions";
+import { requireOrganizationModeratorOrOwner } from "../auth/permissions";
+import { parseBody } from "../api/body";
 
 export async function addMemberForUser(
   userId: number,
   organizationId: number,
   input: createMemberInput = {},
 ) {
-  // Check if user is already a member of the organization
   if (
     await searchMemberOfOrganization({
       organization_id: organizationId,
@@ -51,101 +45,34 @@ export async function addMemberForUser(
   return member;
 }
 
-export async function addMember(req: NextRequest, organizationId: number) {
-  const auth = requireAuth(req);
-
-  let body: any;
-  try {
-    body = await req.json();
-  } catch (error) {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  // Validate input against schema
-  let input;
-  try {
-    input = createMemberInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: any) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
-
-  const member = await addMemberForUser(auth.userId, organizationId, input);
-
-  return member;
-}
-
-export async function requireModeratorOrOwner(
-  userId: number,
-  organizationId: number,
-) {
-  // Use centralized permission system (includes superuser bypass)
-  await requireOrganizationModeratorOrOwner(userId, organizationId);
+export async function addMember(ctx: RequestCtx, organizationId: number) {
+  const auth = requireAuthCtx(ctx);
+  const input = await parseBody(ctx, createMemberInput);
+  return await addMemberForUser(auth.userId, organizationId, input);
 }
 
 export async function authDeleteMember(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
 ) {
-  const auth = requireAuth(req);
+  const auth = requireAuthCtx(ctx);
+  const input = await parseBody(ctx, deleteMemberInput);
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  let input;
-  try {
-    const { deleteMemberInput } = await import("../schemas/members");
-    input = deleteMemberInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: any) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
-
-  const targetUserId = input.user_id;
-
-  // Check if target member exists
   const memberToRemove = await searchMemberOfOrganization({
     organization_id: organizationId,
-    user_id: targetUserId,
+    user_id: input.user_id,
   });
 
   if (!memberToRemove) {
     throw new NotFoundError("Member not found in this organization.");
   }
 
-  // If the authenticated user is removing someone else, they must be moderator or owner
-  if (auth.userId !== targetUserId) {
-    await requireModeratorOrOwner(auth.userId, organizationId);
+  if (auth.userId !== input.user_id) {
+    await requireOrganizationModeratorOrOwner(auth.userId, organizationId, ctx);
   }
 
-  // Delete the member
-  const { deleteMember } = await import("../db/members");
   await deleteMember({
-    user_id: targetUserId,
+    user_id: input.user_id,
     organization_id: organizationId,
   });
 
@@ -153,65 +80,40 @@ export async function authDeleteMember(
 }
 
 export async function getMember(userId: number, organizationId: number) {
-  const member: memberRowSchema | null = await searchMemberOfOrganization({
+  return await searchMemberOfOrganization({
     organization_id: organizationId,
     user_id: userId,
   });
-
-  if (!member) return null;
-
-  return member;
 }
 
-export async function isMember(userId: number, organizationId: number) {
-  const member: memberRowSchema | null = await searchMemberOfOrganization({
-    organization_id: organizationId,
-    user_id: userId,
-  });
-
-  if (!member) return false;
-
-  return true;
-}
-
-export async function authGetMembersList(
-  req: NextRequest,
+async function ensureOrganizationVisible(
+  ctx: RequestCtx,
   organizationId: number,
-) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  const organization : organizationResponseSchema =
-  await getOrganization({
+): Promise<organizationResponseSchema> {
+  const auth = getOptionalAuth(ctx);
+  const organization: organizationResponseSchema = await getOrganization({
     user_id: auth.userId,
     organization_id: organizationId,
   });
+  if (!organization) throw new NotFoundError("Organization not found");
+  return organization;
+}
 
-  if (!organization) {
-    throw new NotFoundError("Organization not found");
-  }
-
-  let members: memberResponseSchema[];
-  members = await getMembersList({ organization_id: organization.id });
+export async function authGetMembersList(
+  ctx: RequestCtx,
+  organizationId: number,
+) {
+  const organization = await ensureOrganizationVisible(ctx, organizationId);
+  const members: memberResponseSchema[] = await getMembersList({
+    organization_id: organization.id,
+  });
   return members;
 }
 
 export async function authGetMembersCount(
-  req: NextRequest,
-  organizationId: number
+  ctx: RequestCtx,
+  organizationId: number,
 ) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  const organization : organizationResponseSchema =
-  await getOrganization({
-    user_id: auth.userId,
-    organization_id: organizationId,
-  });
-
-  if (!organization) {
-    throw new NotFoundError("Organization not found");
-  }
-
-  let members: number;
-  members = await getMembersCount({ organization_id: organization.id });
-  return members;
+  const organization = await ensureOrganizationVisible(ctx, organizationId);
+  return await getMembersCount({ organization_id: organization.id });
 }

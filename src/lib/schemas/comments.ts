@@ -11,6 +11,13 @@ export const commentRowSchema = zod.object({
 
 export type commentRowSchema = zod.infer<typeof commentRowSchema>;
 
+export const commentPermissionsSchema = zod.object({
+  can_delete: zod.boolean(),
+  can_moderate: zod.boolean(),
+});
+
+export type commentPermissionsSchema = zod.infer<typeof commentPermissionsSchema>;
+
 export const commentResponseSchema = zod.object({
   id: zod.number().int(),
   user_id: zod.number().int(),
@@ -20,6 +27,7 @@ export const commentResponseSchema = zod.object({
   text: zod.string(),
   created_at: zod.date(),
   visible: zod.boolean(),
+  permissions: commentPermissionsSchema.optional(),
 });
 
 export type commentResponseSchema = zod.infer<typeof commentResponseSchema>;

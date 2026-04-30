@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
-import { NextRequest } from "next/server";
-import { getTokenFromRequest, requireAuth } from "../auth/auth";
+import { getOptionalAuth, requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
 import {
   deleteSignatureByUserInCampaign,
   getAuthorizedCampaignSignaturesCount,
@@ -16,11 +16,10 @@ function getSignatureChecksum(signerId: number, campaignId: number) {
 }
 
 export async function authGetCampaignSignaturesCount(
-  req: NextRequest,
+  ctx: RequestCtx,
   campaignId: number,
 ) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
+  const auth = getOptionalAuth(ctx);
 
   const signaturesCount = await getAuthorizedCampaignSignaturesCount({
     user_id: auth.userId,
@@ -34,13 +33,11 @@ export async function authGetCampaignSignaturesCount(
   return signaturesCount;
 }
 
-export async function signCampaign(req: NextRequest, campaignId: number) {
-  const auth = requireAuth(req);
+export async function signCampaign(ctx: RequestCtx, campaignId: number) {
+  const auth = requireAuthCtx(ctx);
 
-  const campaign = await authGetCampaign(req, campaignId);
-  if (!campaign || campaign === null) {
-    throw new NotFoundError("Campaign not found.");
-  }
+  const campaign = await authGetCampaign(ctx, campaignId);
+  if (!campaign) throw new NotFoundError("Campaign not found.");
 
   if (campaign.is_archived) {
     throw new ValidationError("Cannot sign an archived campaign", {
@@ -69,20 +66,16 @@ export async function signCampaign(req: NextRequest, campaignId: number) {
   return signature;
 }
 
-export async function unsignCampaign(req: NextRequest, campaignId: number) {
-  const auth = requireAuth(req);
+export async function unsignCampaign(ctx: RequestCtx, campaignId: number) {
+  const auth = requireAuthCtx(ctx);
 
-  const campaign = await authGetCampaign(req, campaignId);
-  if (!campaign || campaign === null) {
-    throw new NotFoundError("Campaign not found.");
-  }
+  const campaign = await authGetCampaign(ctx, campaignId);
+  if (!campaign) throw new NotFoundError("Campaign not found.");
 
   if (campaign.is_archived) {
     throw new ValidationError(
       "Cannot remove signature from an archived campaign",
-      {
-        campaign_id: campaignId,
-      },
+      { campaign_id: campaignId },
     );
   }
 
@@ -91,9 +84,7 @@ export async function unsignCampaign(req: NextRequest, campaignId: number) {
     campaign_id: campaignId,
   });
 
-  if (!existingSignature) {
-    throw new NotFoundError("Signature not found.");
-  }
+  if (!existingSignature) throw new NotFoundError("Signature not found.");
 
   await deleteSignatureByUserInCampaign({
     signer_id: auth.userId,

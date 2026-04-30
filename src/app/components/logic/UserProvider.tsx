@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { apiFetch, ApiClientError } from "@/lib/api/client";
 
 export interface PublicUser {
   id: number;
@@ -28,22 +29,14 @@ interface UserContextValue {
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
 async function fetchCurrentUser(signal?: AbortSignal): Promise<PublicUser | null> {
-  const response = await fetch("/api/auth/me", {
-    method: "GET",
-    credentials: "include",
-    signal,
-  });
-
-  if (response.status === 401 || response.status === 403) {
-    return null;
+  try {
+    return await apiFetch<PublicUser>("/api/auth/me", { signal });
+  } catch (err) {
+    if (err instanceof ApiClientError && (err.status === 401 || err.status === 403)) {
+      return null;
+    }
+    throw err;
   }
-
-  if (!response.ok) {
-    throw new Error(`Unable to fetch current user (${response.status})`);
-  }
-
-  const data = (await response.json()) as PublicUser;
-  return data;
 }
 
 export default function UserProvider({ children }: { children: React.ReactNode }) {
@@ -53,8 +46,7 @@ export default function UserProvider({ children }: { children: React.ReactNode }
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const currentUser = await fetchCurrentUser();
-      setUser(currentUser);
+      setUser(await fetchCurrentUser());
     } catch (error) {
       console.error("Failed to fetch current user", error);
       setUser(null);
@@ -70,25 +62,18 @@ export default function UserProvider({ children }: { children: React.ReactNode }
       setIsLoading(true);
       try {
         const currentUser = await fetchCurrentUser(abortController.signal);
-        setUser(currentUser);
+        if (!abortController.signal.aborted) setUser(currentUser);
       } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
+        if (abortController.signal.aborted) return;
         console.error("Failed to fetch current user", error);
         setUser(null);
       } finally {
-        if (!abortController.signal.aborted) {
-          setIsLoading(false);
-        }
+        if (!abortController.signal.aborted) setIsLoading(false);
       }
     }
 
     void loadUser();
-
-    return () => {
-      abortController.abort();
-    };
+    return () => abortController.abort();
   }, []);
 
   const value = useMemo(
@@ -101,10 +86,8 @@ export default function UserProvider({ children }: { children: React.ReactNode }
 
 export function useUser() {
   const context = useContext(UserContext);
-
   if (!context) {
     throw new Error("useUser must be used within a UserProvider");
   }
-
   return context;
 }

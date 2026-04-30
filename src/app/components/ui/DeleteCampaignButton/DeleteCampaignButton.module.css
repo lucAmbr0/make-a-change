@@ -1,0 +1,136 @@
+.dangerZone {
+    margin: 100px 10%;
+    padding: 24px;
+    border: solid 1px var(--accent-400);
+    border-radius: 16px;
+    background-color: var(--accent-100);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dangerTitle {
+    margin: 0;
+    font-family: var(--font-playfair);
+    font-size: 24px;
+    color: var(--accent-950);
+}
+
+.dangerText {
+    margin: 0;
+    font-family: var(--font-inter);
+    color: var(--accent-900);
+    font-size: 14px;
+}
+
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px;
+    min-width: 360px;
+    max-width: 480px;
+}
+
+.modalTitle {
+    margin: 0;
+    font-family: var(--font-playfair);
+    font-size: 22px;
+    color: var(--accent-950);
+}
+
+.modalDescription {
+    margin: 0;
+    font-family: var(--font-inter);
+    color: var(--accent-900);
+    font-size: 14px;
+}
+
+.campaignNamePreview {
+    margin: 0;
+    padding: 8px 12px;
+    background-color: var(--accent-100);
+    border: solid 1px var(--accent-300);
+    border-radius: 8px;
+    font-family: var(--font-inter);
+    font-weight: 700;
+    color: var(--accent-950);
+    word-break: break-word;
+}
+
+.confirmInput {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--accent-50);
+    border: solid 1px var(--accent-400);
+    border-radius: 8px;
+    font-family: var(--font-inter);
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.confirmInput:focus {
+    outline: none;
+    border-color: var(--accent-700);
+}
+
+.errorText {
+    color: var(--accent-500);
+    font-size: 12px;
+}
+
+.modalActions {
+    margin-top: 8px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.confirmDeleteButton {
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-family: var(--font-inter);
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: var(--accent-800);
+    color: var(--accent-50);
+    border: solid 1px var(--accent-300);
+    transition: 0.2s ease all;
+}
+
+.confirmDeleteButton:hover:not(:disabled) {
+    background-color: var(--accent-700);
+    transform: translateY(-2px);
+}
+
+.confirmDeleteButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .dangerZone {
+        margin: 50px 16px;
+        padding: 16px;
+    }
+
+    .dangerTitle {
+        font-size: 20px;
+    }
+
+    .modalContent {
+        min-width: 0;
+        width: 100%;
+        padding: 16px;
+    }
+
+    .modalTitle {
+        font-size: 18px;
+    }
+
+    .modalActions {
+        flex-wrap: wrap;
+        justify-content: stretch;
+    }
+}

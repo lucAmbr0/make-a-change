@@ -1,18 +1,13 @@
-import { NextRequest } from "next/server";
-import { getTokenFromRequest, requireAuth } from "../auth/auth";
+import { getOptionalAuth, requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
+import { NotFoundError, UnauthorizedError } from "../errors/ApiError";
 import {
-  UnauthorizedError,
-  ValidationError,
-  NotFoundError,
-} from "../errors/ApiError";
-import {
-  campaignIdRowSchema,
   campaignResponseSchema,
   campaignRowSchema,
   createCampaignInput,
+  updateCampaignInput,
 } from "../schemas/campaigns";
 import {
-  checkDeleteCampaignPrivileges,
   deleteCampaign,
   getCampaignsForUser,
   getCampaignsForUserWithDetails,
@@ -21,47 +16,36 @@ import {
   getCampaignsFromUserOrganizations,
   getCampaignsWithoutOrganization,
   insertCampaign,
+  updateCampaign,
   campaignExists,
   getCampaign,
   getCampaignUnauthorized,
 } from "../db/campaigns";
-import { ZodError } from "zod";
-import { isMember } from "./memberService";
-import { requireCampaignDelete, canAccessCampaign, isSuperUser } from "../auth/permissions";
+import { parseBody } from "../api/body";
+import {
+  isOrganizationMember,
+  isSuperUser,
+  requireCampaignDelete,
+  requireCampaignEdit,
+  canAccessCampaign,
+} from "../auth/permissions";
+import {
+  buildCampaignPermissions,
+  decorateCampaign,
+  decorateCampaigns,
+} from "./permissionsDecorator";
 
-export async function createCampaign(req: NextRequest) {
-  const auth = requireAuth(req);
+export async function createCampaign(ctx: RequestCtx) {
+  const auth = requireAuthCtx(ctx);
+  const input = await parseBody(ctx, createCampaignInput);
 
-  let body: any;
-  try {
-    body = await req.json();
-  } catch (error) {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  // Validate input against schema
-  let input;
-  try {
-    input = createCampaignInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: any) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
-
-  // Validate organization membership if organization_id is provided
   if (input.organization_id) {
-    const member = await isMember(auth.userId, input.organization_id);
-    if (!member) {
+    const isMember = await isOrganizationMember(
+      auth.userId,
+      input.organization_id,
+      ctx,
+    );
+    if (!isMember) {
       throw new UnauthorizedError(
         "Can't create a campaign inside an organization you're not a member of",
       );
@@ -86,126 +70,116 @@ export async function createCampaign(req: NextRequest) {
   return campaign;
 }
 
-export async function getAuthorizedCampaings(req: NextRequest) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  let campaigns: campaignRowSchema[];
-  campaigns = await getCampaignsForUser({ user_id: auth.userId });
-  return campaigns;
+export async function getAuthorizedCampaings(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  return await getCampaignsForUser({ user_id: auth.userId });
 }
 
-export async function getAuthorizedCampaignsWithDetails(req: NextRequest) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  let campaigns: campaignResponseSchema[];
-  campaigns = await getCampaignsForUserWithDetails({ user_id: auth.userId });
-  return campaigns;
+export async function getAuthorizedCampaignsWithDetails(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  const campaigns = await getCampaignsForUserWithDetails({
+    user_id: auth.userId,
+  });
+  return await decorateCampaigns(campaigns, auth.userId, ctx);
 }
 
-export async function authDeleteCampaign(req: NextRequest, campaignId: number) {
-  const auth = requireAuth(req);
+export async function authUpdateCampaign(
+  ctx: RequestCtx,
+  campaignId: number,
+) {
+  const auth = requireAuthCtx(ctx);
 
-  // First check if campaign exists
+  const exists = await campaignExists({ campaign_id: campaignId });
+  if (!exists) {
+    throw new NotFoundError("Campaign not found.", {
+      operation: "authUpdateCampaign",
+      campaignId,
+    });
+  }
+
+  await requireCampaignEdit(auth.userId, campaignId, ctx);
+
+  const input = await parseBody(ctx, updateCampaignInput);
+  await updateCampaign({ id: campaignId, fields: input });
+
+  return await authGetCampaign(ctx, campaignId);
+}
+
+export async function authDeleteCampaign(ctx: RequestCtx, campaignId: number) {
+  const auth = requireAuthCtx(ctx);
+
   const exists = await campaignExists({ campaign_id: campaignId });
   if (!exists) {
     throw new NotFoundError("Campaign not found.", {
       operation: "authDeleteCampaign",
-      campaignId: campaignId,
+      campaignId,
     });
   }
 
-  // Check permissions using centralized permission system
-  // This checks if user is owner OR is superuser
-  await requireCampaignDelete(auth.userId, campaignId);
-
-  // Delete the campaign
+  await requireCampaignDelete(auth.userId, campaignId, ctx);
   await deleteCampaign({ id: campaignId });
   return true;
 }
 
-export async function authGetCampaign(req: NextRequest, campaignId: number) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  let campaign: campaignResponseSchema;
-  
-  // Check if user can access this campaign using centralized permissions
-  const canAccess = await canAccessCampaign(auth.userId, campaignId);
+export async function authGetCampaign(ctx: RequestCtx, campaignId: number) {
+  const auth = getOptionalAuth(ctx);
+
+  const canAccess = await canAccessCampaign(auth.userId, campaignId, ctx);
   if (!canAccess) {
     throw new NotFoundError("Campaign not found.");
   }
 
-  // For superusers, fetch without authorization filters
-  // For regular users, fetch with authorization filters
-  const isSuperUserFlag = auth.userId && await isSuperUser(auth.userId);
-  
-  if (isSuperUserFlag) {
-    campaign = await getCampaignUnauthorized({
-      campaign_id: campaignId,
-    });
-  } else {
-    campaign = await getCampaign({
-      user_id: auth.userId,
-      campaign_id: campaignId,
-    });
-  }
+  const isAdmin =
+    auth.userId !== null && (await isSuperUser(auth.userId, ctx));
 
-  if (!campaign || campaign === null) {
+  const campaign: campaignResponseSchema = isAdmin
+    ? await getCampaignUnauthorized({ campaign_id: campaignId })
+    : await getCampaign({
+        user_id: auth.userId,
+        campaign_id: campaignId,
+      });
+
+  if (!campaign) {
     throw new NotFoundError("Campaign not found.");
   }
 
-  return campaign;
+  return await decorateCampaign(campaign, auth.userId, ctx);
 }
 
 export async function getCampaignsFromSameOrganization(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
   excludeCampaignId: number,
 ) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  
-  const campaigns: campaignResponseSchema[] = await getCampaignsForOrganization({
+  const auth = getOptionalAuth(ctx);
+  const campaigns = await getCampaignsForOrganization({
     user_id: auth.userId,
     organization_id: organizationId,
     exclude_campaign_id: excludeCampaignId,
   });
-
-  return campaigns;
+  return await decorateCampaigns(campaigns, auth.userId, ctx);
 }
 
-export async function getFeaturedCampaigns(req: NextRequest) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  
-  const campaigns: campaignResponseSchema[] = await getCampaignsBySignatures({
-    user_id: auth.userId,
-  });
-
-  return campaigns;
+export async function getFeaturedCampaigns(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  const campaigns = await getCampaignsBySignatures({ user_id: auth.userId });
+  return await decorateCampaigns(campaigns, auth.userId, ctx);
 }
 
-export async function getUserOrganizationsCampaigns(req: NextRequest) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  
-  if (!auth.userId) {
-    return [];
-  }
+export async function getUserOrganizationsCampaigns(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  if (!auth.userId) return [];
 
-  const campaigns: campaignResponseSchema[] = await getCampaignsFromUserOrganizations({
+  const campaigns = await getCampaignsFromUserOrganizations({
     user_id: auth.userId,
   });
-
-  return campaigns;
+  return await decorateCampaigns(campaigns, auth.userId, ctx);
 }
 
-export async function getIndependentCampaigns(req: NextRequest) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  
-  const campaigns: campaignResponseSchema[] = await getCampaignsWithoutOrganization({
+export async function getIndependentCampaigns(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  const campaigns = await getCampaignsWithoutOrganization({
     user_id: auth.userId,
   });
-
-  return campaigns;
+  return await decorateCampaigns(campaigns, auth.userId, ctx);
 }

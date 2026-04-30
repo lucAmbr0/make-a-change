@@ -21,6 +21,17 @@ export const campaignRowSchema = zod.object({
 
 export type campaignRowSchema = zod.infer<typeof campaignRowSchema>;
 
+export const campaignPermissionsSchema = zod.object({
+  can_view: zod.boolean(),
+  can_edit: zod.boolean(),
+  can_delete: zod.boolean(),
+  can_moderate_comments: zod.boolean(),
+  can_comment: zod.boolean(),
+  can_sign: zod.boolean(),
+});
+
+export type campaignPermissionsSchema = zod.infer<typeof campaignPermissionsSchema>;
+
 export const campaignResponseSchema = zod.object({
   id: zod.number().int(),
   organization_id: zod.number().int().nullable().optional(),
@@ -38,6 +49,7 @@ export const campaignResponseSchema = zod.object({
   comments_active: mysqlBooleanSchema,
   comments_require_approval: mysqlBooleanSchema,
   is_archived: mysqlBooleanSchema,
+  permissions: campaignPermissionsSchema.optional(),
 });
 
 export type campaignResponseSchema = zod.infer<typeof campaignResponseSchema>;
@@ -71,6 +83,35 @@ export const createCampaignInput = zod.object({
 });
 
 export type createCampaignInput = zod.infer<typeof createCampaignInput>;
+
+export const updateCampaignInput = zod
+  .object({
+    title: zod
+      .string()
+      .min(1, "Title cannot be empty")
+      .max(64, "Title cannot exceed 64 characters")
+      .trim(),
+    description: zod.string().max(65535, "Description is too long").nullable(),
+    cover_path: zod
+      .string()
+      .max(2048, "Cover path cannot exceed 2048 characters")
+      .nullable(),
+    signature_goal: zod
+      .number()
+      .int("Signature goal must be an integer")
+      .positive("Signature goal must be a positive number")
+      .nullable(),
+    is_public: zod.boolean(),
+    comments_active: zod.boolean(),
+    comments_require_approval: zod.boolean(),
+    is_archived: zod.boolean(),
+  })
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided",
+  });
+
+export type updateCampaignInput = zod.infer<typeof updateCampaignInput>;
 
 export const campaignIdRowSchema = zod.object({
   id: zod.number().int(),

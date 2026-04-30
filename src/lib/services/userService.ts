@@ -5,17 +5,16 @@ import {
   publicUserRowSchema,
   userAuthenticationInput,
 } from "../schemas/users";
-import { requireAuth } from "../auth/auth";
+import { requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
 import {
   ConflictError,
   InternalServerError,
   BadRequestError,
-  NotFoundError,
   UnauthorizedError,
 } from "../errors/ApiError";
 import { DBError } from "../db/query";
 import { signToken } from "../auth/auth";
-import { NextRequest } from "next/server";
 
 export async function createUser(input: createUserInput) {
   let password_hashed: string;
@@ -28,15 +27,13 @@ export async function createUser(input: createUserInput) {
     });
   }
 
-  const registered_at = new Date();
-
   try {
     return await insertUser({
       first_name: input.first_name.trim(),
       last_name: input.last_name.trim(),
       email: input.email,
-      password_hashed: password_hashed,
-      registered_at: registered_at,
+      password_hashed,
+      registered_at: new Date(),
       phone: input.phone?.trim() || null,
       birth_date: input.birth_date,
       is_active: 1,
@@ -73,14 +70,10 @@ export async function createUser(input: createUserInput) {
   }
 }
 
-export async function getUserBySession(req: NextRequest) {
-  const auth = requireAuth(req);
+export async function getUserBySession(ctx: RequestCtx) {
+  const auth = requireAuthCtx(ctx);
 
-  if (!auth || !auth.userId) {
-    throw new BadRequestError("Invalid session");
-  }
-
-  const fullUser = await getUserById(auth);
+  const fullUser = await getUserById({ userId: auth.userId });
 
   const user: publicUserRowSchema = {
     id: fullUser.id,
@@ -88,16 +81,14 @@ export async function getUserBySession(req: NextRequest) {
     last_name: fullUser.last_name,
     email: fullUser.email,
     phone: fullUser.phone,
-    birth_date: fullUser.birth_date
+    birth_date: fullUser.birth_date,
   };
 
   return user;
 }
 
 export async function loginUser(input: userAuthenticationInput) {
-  const user = await getUserByEmail({
-    email: input.email,
-  });
+  const user = await getUserByEmail({ email: input.email });
 
   const passwordMatches = await comparePassword(
     input.password,
@@ -109,7 +100,6 @@ export async function loginUser(input: userAuthenticationInput) {
   }
 
   const token = signToken({ userId: user.id });
-
   if (!token) throw new InternalServerError("Error signing token");
 
   return {

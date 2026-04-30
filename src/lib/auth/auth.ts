@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { NextRequest } from "next/server";
-import { ApiError, BadRequestError, UnauthorizedError } from "../errors/ApiError";
+import { UnauthorizedError } from "../errors/ApiError";
+import type { RequestCtx } from "./ctx";
 
 const JWT_SECRET = process.env.JWT_SECRET || "ASSIGN_JWT_SECRET";
 const COOKIE_NAME = "session_token";
@@ -87,33 +87,37 @@ export function clearSessionCookie(res: any) {
   }
 }
 
-export function getTokenFromRequest(req: NextRequest | any) {
-  try {
-    const authHeader = req.headers?.get
-      ? req.headers.get("authorization")
-      : req.headers?.authorization;
-
-    if (
-      authHeader &&
-      typeof authHeader === "string" &&
-      authHeader.startsWith("Bearer ")
-    ) {
-      return authHeader.slice(7).trim();
-    }
-  } catch {}
-
-  try {
-    const cookie = req.cookies?.get?.(COOKIE_NAME);
-    if (cookie) return cookie.value;
-  } catch {}
-
-  return null;
+function getTokenFromCtx(ctx: RequestCtx): string | null {
+  const authHeader = ctx.headers.get("authorization");
+  if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    return authHeader.slice(7).trim();
+  }
+  const cookie = ctx.cookies.get(COOKIE_NAME);
+  return cookie?.value ?? null;
 }
 
-export function requireAuth(req: NextRequest | any) {
-  const token = getTokenFromRequest(req);
-  if (!token) throw new UnauthorizedError("No authentication token provided");
+const AUTH_CACHE_KEY = "__auth__";
+
+export function getOptionalAuth(ctx: RequestCtx): { userId: number | null } {
+  const cached = ctx.cache.get(AUTH_CACHE_KEY);
+  if (cached !== undefined) return cached as { userId: number | null };
+
+  const token = getTokenFromCtx(ctx);
+  if (!token) {
+    const result = { userId: null };
+    ctx.cache.set(AUTH_CACHE_KEY, result);
+    return result;
+  }
   const payload = verifyToken(token);
-  if (!payload) throw new UnauthorizedError("Invalid or expired token");
-  return payload;
+  const result = { userId: payload?.userId ?? null };
+  ctx.cache.set(AUTH_CACHE_KEY, result);
+  return result;
+}
+
+export function requireAuthCtx(ctx: RequestCtx): { userId: number } {
+  const auth = getOptionalAuth(ctx);
+  if (auth.userId === null) {
+    throw new UnauthorizedError("No authentication token provided");
+  }
+  return { userId: auth.userId };
 }

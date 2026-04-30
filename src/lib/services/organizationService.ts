@@ -1,14 +1,14 @@
-import { NextRequest } from "next/server";
-import { ZodError } from "zod";
-import { getTokenFromRequest, requireAuth } from "../auth/auth";
+import { getOptionalAuth, requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
 import { insertMember } from "../db/members";
 import {
   getOrganization,
   getOrganizationsForUser,
   getOrganizationsNames,
   insertOrganization,
+  deleteOrganization,
 } from "../db/organizations";
-import { NotFoundError, UnauthorizedError, ValidationError } from "../errors/ApiError";
+import { NotFoundError, ValidationError } from "../errors/ApiError";
 import { memberRowSchema } from "../schemas/members";
 import {
   createOrganizationInput,
@@ -16,52 +16,25 @@ import {
   organizationResponseSchema,
   organizationRowSchema,
 } from "../schemas/organization";
+import { parseBody } from "../api/body";
+import { requireOrganizationDelete } from "../auth/permissions";
 
-export async function createOrganization(req: NextRequest) {
-  const auth = requireAuth(req);
-
-  let body: any;
-  try {
-    body = await req.json();
-  } catch (error) {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  // Validate input against schema
-  let input;
-  try {
-    input = createOrganizationInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: any) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
+export async function createOrganization(ctx: RequestCtx) {
+  const auth = requireAuthCtx(ctx);
+  const input = await parseBody(ctx, createOrganizationInput);
 
   await organizationNamesExists(input.name);
 
-  const creation_date = new Date();
-
-  // Create organization
   const organization: organizationRowSchema = await insertOrganization({
     creator_id: auth.userId,
     name: input.name,
     description: input.description || null,
-    created_at: creation_date,
+    created_at: new Date(),
     cover_path: input.cover_path || null,
     is_public: input.is_public,
     requires_approval: input.requires_approval,
   });
 
-  // Once organization is created, add the creator as member and owner
   const member: memberRowSchema = await insertMember({
     user_id: auth.userId,
     organization_id: organization.id,
@@ -84,27 +57,22 @@ async function organizationNamesExists(name: string) {
   return false;
 }
 
-export async function getAuthorizedOrganizations(req: NextRequest) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  let organizations: organizationRowSchema[];
-  organizations = await getOrganizationsForUser({ user_id: auth.userId });
-  return organizations;
+export async function getAuthorizedOrganizations(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  return await getOrganizationsForUser({ user_id: auth.userId });
 }
 
 export async function authGetOrganization(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
 ) {
-  const token = getTokenFromRequest(req);
-  const auth = token ? requireAuth(req) : { userId: null };
-  let organization: organizationResponseSchema;
-  organization = await getOrganization({
+  const auth = getOptionalAuth(ctx);
+  const organization: organizationResponseSchema = await getOrganization({
     user_id: auth.userId,
     organization_id: organizationId,
   });
 
-  if (!organization || organization === null) {
+  if (!organization) {
     throw new NotFoundError("Organization not found.");
   }
 
@@ -112,10 +80,10 @@ export async function authGetOrganization(
 }
 
 export async function authDeleteOrganization(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
 ) {
-  const auth = requireAuth(req);
+  const auth = requireAuthCtx(ctx);
 
   const organization = await getOrganization({
     user_id: auth.userId,
@@ -126,14 +94,8 @@ export async function authDeleteOrganization(
     throw new NotFoundError("Organization not found.");
   }
 
-  if (organization.creator_id !== auth.userId) {
-    throw new UnauthorizedError(
-      "You must be the owner of this organization to delete it.",
-    );
-  }
+  await requireOrganizationDelete(auth.userId, organizationId, ctx);
 
-  const { deleteOrganization } = await import("../db/organizations");
   await deleteOrganization({ organization_id: organizationId });
-
   return true;
 }

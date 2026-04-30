@@ -1,415 +1,366 @@
 import { UnauthorizedError, NotFoundError } from "../errors/ApiError";
 import { searchMemberOfOrganization } from "../db/members";
 import { campaignExists } from "../db/campaigns";
-import { getOrganization } from "../db/organizations";
 import { getUserById } from "../db/users";
 import { query } from "../db/query";
-import { userRowSchema } from "../schemas/users";
+import type { RequestCtx } from "./ctx";
 
 /**
  * Central permission checking module
- * All permission checks should go through these functions
- * Superusers (is_admin = true) bypass all checks
+ * All permission checks should go through these functions.
+ * Superusers (is_admin = true) bypass all checks.
+ *
+ * Every function accepts an optional `ctx` to memoize lookups for the
+ * duration of one request. Pass the same ctx through chained checks to
+ * avoid redundant DB queries (e.g. canDeleteComment → canModerateComments
+ * → isCampaignCreator → isSuperUser).
  */
 
-/**
- * Check if user is a superuser (admin)
- * Superusers can perform any action
- */
-export async function isSuperUser(userId: number): Promise<boolean> {
-  try {
-    const user = await getUserById({ userId });
-    return user ? user.is_admin : false;
-  } catch {
-    return false;
-  }
+async function memo<T>(
+  ctx: RequestCtx | undefined,
+  key: string,
+  loader: () => Promise<T>,
+): Promise<T> {
+  if (!ctx) return loader();
+  if (ctx.cache.has(key)) return ctx.cache.get(key) as T;
+  const value = await loader();
+  ctx.cache.set(key, value);
+  return value;
 }
 
-/**
- * Ensure user is a superuser, throw otherwise
- */
-export async function requireSuperUser(userId: number): Promise<void> {
-  const isAdmin = await isSuperUser(userId);
-  if (!isAdmin) {
+export async function isSuperUser(
+  userId: number,
+  ctx?: RequestCtx,
+): Promise<boolean> {
+  return memo(ctx, `superUser:${userId}`, async () => {
+    try {
+      const user = await getUserById({ userId });
+      return user ? user.is_admin : false;
+    } catch {
+      return false;
+    }
+  });
+}
+
+export async function requireSuperUser(
+  userId: number,
+  ctx?: RequestCtx,
+): Promise<void> {
+  if (!(await isSuperUser(userId, ctx))) {
     throw new UnauthorizedError(
       "This action requires administrative privileges.",
     );
   }
 }
 
-/**
- * Check if user is campaign creator
- * Superusers always return true
- */
 export async function isCampaignCreator(
   userId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
+  if (await isSuperUser(userId, ctx)) return true;
 
-  try {
-    const exists = await campaignExists({ campaign_id: campaignId });
-    if (!exists) return false;
+  return memo(ctx, `campaignCreator:${userId}:${campaignId}`, async () => {
+    try {
+      const exists = await campaignExists({ campaign_id: campaignId });
+      if (!exists) return false;
 
-    // Query to check if user is creator
-    const rows = await query<{ is_creator: number }>(
-      `SELECT 1 as is_creator FROM campaigns WHERE id = ? AND creator_id = ?`,
-      [campaignId, userId],
-    );
-    return rows && rows.length > 0;
-  } catch {
-    return false;
-  }
+      const rows = await query<{ is_creator: number }>(
+        `SELECT 1 as is_creator FROM campaigns WHERE id = ? AND creator_id = ?`,
+        [campaignId, userId],
+      );
+      return rows && rows.length > 0;
+    } catch {
+      return false;
+    }
+  });
 }
 
-/**
- * Ensure user is campaign creator, throw otherwise
- * Superusers always pass
- */
 export async function requireCampaignCreator(
   userId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const isCreator = await isCampaignCreator(userId, campaignId);
-  if (!isCreator) {
+  if (!(await isCampaignCreator(userId, campaignId, ctx))) {
     throw new UnauthorizedError(
       "You don't have permission to perform this action on this campaign.",
     );
   }
 }
 
-/**
- * Check if user is organization member
- * Superusers always return true
- */
+async function getMembership(
+  userId: number,
+  organizationId: number,
+  ctx?: RequestCtx,
+) {
+  return memo(ctx, `member:${userId}:${organizationId}`, () =>
+    searchMemberOfOrganization({
+      user_id: userId,
+      organization_id: organizationId,
+    }),
+  );
+}
+
 export async function isOrganizationMember(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
-
-  const member = await searchMemberOfOrganization({
-    user_id: userId,
-    organization_id: organizationId,
-  });
-
+  if (await isSuperUser(userId, ctx)) return true;
+  const member = await getMembership(userId, organizationId, ctx);
   return member !== null && member !== undefined;
 }
 
-/**
- * Ensure user is organization member, throw otherwise
- * Superusers always pass
- */
 export async function requireOrganizationMember(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const isMember = await isOrganizationMember(userId, organizationId);
-  if (!isMember) {
+  if (!(await isOrganizationMember(userId, organizationId, ctx))) {
     throw new UnauthorizedError(
       "You are not a member of this organization.",
     );
   }
 }
 
-/**
- * Check if user is organization moderator or owner
- * Superusers always return true
- */
 export async function isOrganizationModeratorOrOwner(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
-
-  const member = await searchMemberOfOrganization({
-    user_id: userId,
-    organization_id: organizationId,
-  });
-
+  if (await isSuperUser(userId, ctx)) return true;
+  const member = await getMembership(userId, organizationId, ctx);
   if (!member) return false;
-  return member.is_moderator || member.is_owner ? true : false;
+  return Boolean(member.is_moderator || member.is_owner);
 }
 
-/**
- * Ensure user is organization moderator or owner, throw otherwise
- * Superusers always pass
- */
 export async function requireOrganizationModeratorOrOwner(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const isModOrOwner = await isOrganizationModeratorOrOwner(userId, organizationId);
-  if (!isModOrOwner) {
+  if (!(await isOrganizationModeratorOrOwner(userId, organizationId, ctx))) {
     throw new UnauthorizedError(
       "You must be a moderator or owner of this organization.",
     );
   }
 }
 
-/**
- * Check if user is organization owner
- * Superusers always return true
- */
 export async function isOrganizationOwner(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
-
-  const member = await searchMemberOfOrganization({
-    user_id: userId,
-    organization_id: organizationId,
-  });
-
-  return member && member.is_owner ? true : false;
+  if (await isSuperUser(userId, ctx)) return true;
+  const member = await getMembership(userId, organizationId, ctx);
+  return Boolean(member && member.is_owner);
 }
 
-/**
- * Ensure user is organization owner, throw otherwise
- * Superusers always pass
- */
 export async function requireOrganizationOwner(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const isOwner = await isOrganizationOwner(userId, organizationId);
-  if (!isOwner) {
-    throw new UnauthorizedError(
-      "You must be an owner of this organization.",
-    );
+  if (!(await isOrganizationOwner(userId, organizationId, ctx))) {
+    throw new UnauthorizedError("You must be an owner of this organization.");
   }
 }
 
-/**
- * Check if user can moderate comments in a campaign
- * User can moderate if they are:
- * - Superuser, OR
- * - Campaign creator, OR
- * - Moderator/Owner of the campaign's organization
- */
+async function getCampaignOrganizationId(
+  campaignId: number,
+  ctx?: RequestCtx,
+): Promise<number | null> {
+  return memo(ctx, `campaignOrg:${campaignId}`, async () => {
+    try {
+      const rows = await query<{ organization_id: number | null }>(
+        `SELECT organization_id FROM campaigns WHERE id = ?`,
+        [campaignId],
+      );
+      return rows && rows.length > 0 ? rows[0].organization_id : null;
+    } catch {
+      return null;
+    }
+  });
+}
+
 export async function canModerateComments(
   userId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
+  if (await isSuperUser(userId, ctx)) return true;
+  if (await isCampaignCreator(userId, campaignId, ctx)) return true;
 
-  // Check if campaign creator
-  if (await isCampaignCreator(userId, campaignId)) return true;
-
-  // Check if moderator/owner of organization
-  try {
-    const rows = await query<{ organization_id: number }>(
-      `SELECT organization_id FROM campaigns WHERE id = ?`,
-      [campaignId],
-    );
-
-    if (rows && rows.length > 0) {
-      const orgId = rows[0].organization_id;
-      if (orgId) {
-        return await isOrganizationModeratorOrOwner(userId, orgId);
-      }
-    }
-  } catch {
-    return false;
-  }
-
-  return false;
+  const orgId = await getCampaignOrganizationId(campaignId, ctx);
+  if (!orgId) return false;
+  return await isOrganizationModeratorOrOwner(userId, orgId, ctx);
 }
 
-/**
- * Ensure user can moderate comments in campaign, throw otherwise
- * Superusers always pass
- */
 export async function requireCommentModeration(
   userId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const canModerate = await canModerateComments(userId, campaignId);
-  if (!canModerate) {
+  if (!(await canModerateComments(userId, campaignId, ctx))) {
     throw new UnauthorizedError(
       "You don't have permission to moderate comments in this campaign.",
     );
   }
 }
 
-/**
- * Check if user can delete a comment
- * User can delete if they are:
- * - Superuser, OR
- * - Comment creator, OR
- * - Campaign creator, OR
- * - Moderator/Owner of the campaign's organization
- */
 export async function canDeleteComment(
   userId: number,
   commentId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
+  if (await isSuperUser(userId, ctx)) return true;
 
   try {
-    // Check if user is comment creator
-    const commentRows = await query<{ user_id: number }>(
-      `SELECT user_id FROM comments WHERE id = ? AND campaign_id = ?`,
-      [commentId, campaignId],
+    const commentRows = await memo(
+      ctx,
+      `commentAuthor:${commentId}:${campaignId}`,
+      () =>
+        query<{ user_id: number }>(
+          `SELECT user_id FROM comments WHERE id = ? AND campaign_id = ?`,
+          [commentId, campaignId],
+        ),
     );
 
     if (commentRows && commentRows.length > 0) {
       if (commentRows[0].user_id === userId) return true;
     }
 
-    // Check if campaign creator or organization mod/owner
-    return await canModerateComments(userId, campaignId);
+    return await canModerateComments(userId, campaignId, ctx);
   } catch {
     return false;
   }
 }
 
-/**
- * Ensure user can delete a comment, throw otherwise
- * Superusers always pass
- */
 export async function requireCommentDelete(
   userId: number,
   commentId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const canDelete = await canDeleteComment(userId, commentId, campaignId);
-  if (!canDelete) {
+  if (!(await canDeleteComment(userId, commentId, campaignId, ctx))) {
     throw new UnauthorizedError(
       "You don't have permission to delete this comment.",
     );
   }
 }
 
-/**
- * Check if user can access (view) a campaign
- * User can access if campaign is:
- * - Public, OR
- * - Created by user, OR
- * - User is member of the campaign's organization, OR
- * - User is superuser
- */
 export async function canAccessCampaign(
   userId: number | null,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (userId && (await isSuperUser(userId))) return true;
+  if (userId && (await isSuperUser(userId, ctx))) return true;
 
   try {
-    const rows = await query<{ is_public: number }>(
-      `SELECT is_public FROM campaigns WHERE id = ?`,
-      [campaignId],
+    const rows = await memo(ctx, `campaignVisibility:${campaignId}`, () =>
+      query<{ is_public: number }>(
+        `SELECT is_public FROM campaigns WHERE id = ?`,
+        [campaignId],
+      ),
     );
 
     if (!rows || rows.length === 0) return false;
-
-    // Public campaigns are always accessible
     if (rows[0].is_public) return true;
-
-    // If no user, only public campaigns are accessible
     if (!userId) return false;
 
-    // Check if user is creator
-    if (await isCampaignCreator(userId, campaignId)) return true;
+    if (await isCampaignCreator(userId, campaignId, ctx)) return true;
 
-    // Check if user is member of organization
-    const membershipRows = await query<{ org_id: number }>(
-      `
-      SELECT c.organization_id as org_id
-      FROM campaigns c
-      LEFT JOIN members m ON c.organization_id = m.organization_id AND m.user_id = ?
-      WHERE c.id = ? AND m.user_id IS NOT NULL
-      `,
-      [userId, campaignId],
-    );
-
-    return membershipRows && membershipRows.length > 0;
+    const orgId = await getCampaignOrganizationId(campaignId, ctx);
+    if (!orgId) return false;
+    return await isOrganizationMember(userId, orgId, ctx);
   } catch {
     return false;
   }
 }
 
-/**
- * Ensure user can access campaign, throw otherwise
- */
 export async function requireCampaignAccess(
   userId: number | null,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const canAccess = await canAccessCampaign(userId, campaignId);
-  if (!canAccess) {
-    throw new NotFoundError(
-      "Campaign not found",
+  if (!(await canAccessCampaign(userId, campaignId, ctx))) {
+    throw new NotFoundError("Campaign not found");
+  }
+}
+
+export async function canDeleteCampaign(
+  userId: number,
+  campaignId: number,
+  ctx?: RequestCtx,
+): Promise<boolean> {
+  if (await isSuperUser(userId, ctx)) return true;
+  return await isCampaignCreator(userId, campaignId, ctx);
+}
+
+export async function canEditCampaign(
+  userId: number,
+  campaignId: number,
+  ctx?: RequestCtx,
+): Promise<boolean> {
+  if (await isSuperUser(userId, ctx)) return true;
+  if (await isCampaignCreator(userId, campaignId, ctx)) return true;
+
+  const orgId = await getCampaignOrganizationId(campaignId, ctx);
+  if (!orgId) return false;
+  return await isOrganizationModeratorOrOwner(userId, orgId, ctx);
+}
+
+export async function requireCampaignEdit(
+  userId: number,
+  campaignId: number,
+  ctx?: RequestCtx,
+): Promise<void> {
+  if (!(await canEditCampaign(userId, campaignId, ctx))) {
+    throw new UnauthorizedError(
+      "You don't have permission to edit this campaign.",
     );
   }
 }
 
-/**
- * Check if user can delete a campaign
- * User can delete if they are:
- * - Superuser, OR
- * - Campaign creator
- */
-export async function canDeleteCampaign(
-  userId: number,
-  campaignId: number,
-): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
-  return await isCampaignCreator(userId, campaignId);
-}
-
-/**
- * Ensure user can delete campaign, throw otherwise
- * Superusers always pass
- */
 export async function requireCampaignDelete(
   userId: number,
   campaignId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const canDelete = await canDeleteCampaign(userId, campaignId);
-  if (!canDelete) {
+  if (!(await canDeleteCampaign(userId, campaignId, ctx))) {
     throw new UnauthorizedError(
       "You don't have permission to delete this campaign.",
     );
   }
 }
 
-/**
- * Check if user can delete organization
- * User can delete if they are:
- * - Superuser, OR
- * - Organization creator
- */
 export async function canDeleteOrganization(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<boolean> {
-  if (await isSuperUser(userId)) return true;
+  if (await isSuperUser(userId, ctx)) return true;
 
-  try {
-    const rows = await query<{ creator_id: number }>(
-      `SELECT creator_id FROM organizations WHERE id = ?`,
-      [organizationId],
-    );
-
-    return rows && rows.length > 0 && rows[0].creator_id === userId;
-  } catch {
-    return false;
-  }
+  return memo(ctx, `orgCreator:${organizationId}:${userId}`, async () => {
+    try {
+      const rows = await query<{ creator_id: number }>(
+        `SELECT creator_id FROM organizations WHERE id = ?`,
+        [organizationId],
+      );
+      return Boolean(rows && rows.length > 0 && rows[0].creator_id === userId);
+    } catch {
+      return false;
+    }
+  });
 }
 
-/**
- * Ensure user can delete organization, throw otherwise
- * Superusers always pass
- */
 export async function requireOrganizationDelete(
   userId: number,
   organizationId: number,
+  ctx?: RequestCtx,
 ): Promise<void> {
-  const canDelete = await canDeleteOrganization(userId, organizationId);
-  if (!canDelete) {
+  if (!(await canDeleteOrganization(userId, organizationId, ctx))) {
     throw new UnauthorizedError(
       "You don't have permission to delete this organization.",
     );

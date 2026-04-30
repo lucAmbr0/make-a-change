@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server";
-import { ZodError, ZodIssue } from "zod";
+import { requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
 import {
   decrementInviteCodeUses,
   getInviteCodeByCode,
@@ -9,24 +9,18 @@ import {
   insertApprovalRequest,
 } from "../db/approval_requests";
 import { getOrganizationById } from "../db/organizations";
-import { requireAuth } from "../auth/auth";
-import {
-  NotFoundError,
-  ValidationError,
-} from "../errors/ApiError";
+import { NotFoundError, ValidationError } from "../errors/ApiError";
 import { approvalRequestRowSchema } from "../schemas/approval_requests";
 import { inviteCodeRowSchema } from "../schemas/invite_codes";
 import { joinOrganizationInput } from "../schemas/join";
 import { memberRowSchema } from "../schemas/members";
 import { organizationRowSchema } from "../schemas/organization";
 import { addMemberForUser, getMember } from "./memberService";
+import { parseBody } from "../api/body";
 
 export type joinOrganizationResult =
   | { type: "member"; member: memberRowSchema }
-  | {
-      type: "approval_request";
-      approvalRequest: approvalRequestRowSchema;
-    };
+  | { type: "approval_request"; approvalRequest: approvalRequestRowSchema };
 
 function normalizeOrganizationId(input: joinOrganizationInput) {
   return input.organization_id ?? input.organizationId;
@@ -37,9 +31,7 @@ async function validateInviteCodeForJoin(inviteCode: string) {
     code: inviteCode,
   });
 
-  if (!code) {
-    throw new NotFoundError("Invite code not found.");
-  }
+  if (!code) throw new NotFoundError("Invite code not found.");
 
   if (code.expires_at && code.expires_at < new Date()) {
     throw new ValidationError("Invite code has expired.", {
@@ -57,34 +49,10 @@ async function validateInviteCodeForJoin(inviteCode: string) {
 }
 
 export async function joinOrganization(
-  req: NextRequest,
+  ctx: RequestCtx,
 ): Promise<joinOrganizationResult> {
-  const auth = requireAuth(req);
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  let input: joinOrganizationInput;
-  try {
-    input = joinOrganizationInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: ZodIssue) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
+  const auth = requireAuthCtx(ctx);
+  const input = await parseBody(ctx, joinOrganizationInput);
 
   const inviteCode = input.invite_code
     ? await validateInviteCodeForJoin(input.invite_code)
@@ -114,10 +82,7 @@ export async function joinOrganization(
     organization_id: organizationId,
   });
 
-  if (!organization) {
-    throw new NotFoundError("Organization not found.");
-  }
-
+  if (!organization) throw new NotFoundError("Organization not found.");
   if (!organization.is_public && !inviteCode) {
     throw new NotFoundError("Organization not found.");
   }
@@ -146,24 +111,13 @@ export async function joinOrganization(
       requested_at: new Date(),
     });
 
-    if (inviteCode) {
-      await decrementInviteCodeUses({ id: inviteCode.id });
-    }
+    if (inviteCode) await decrementInviteCodeUses({ id: inviteCode.id });
 
-    return {
-      type: "approval_request",
-      approvalRequest,
-    };
+    return { type: "approval_request", approvalRequest };
   }
 
   const member = await addMemberForUser(auth.userId, organization.id);
+  if (inviteCode) await decrementInviteCodeUses({ id: inviteCode.id });
 
-  if (inviteCode) {
-    await decrementInviteCodeUses({ id: inviteCode.id });
-  }
-
-  return {
-    type: "member",
-    member,
-  };
+  return { type: "member", member };
 }

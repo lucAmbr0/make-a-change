@@ -4,28 +4,24 @@ import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
 import Carousel from "@/app/components/ui/Carousel/Carousel";
 import type { Metadata } from "next";
 import Title from "@/app/components/ui/Typography/Title/Title";
-import { cookies, headers } from "next/headers";
-import { getFeaturedCampaigns, getUserOrganizationsCampaigns, getIndependentCampaigns } from "@/lib/services/campaignService";
-import { NextRequest } from "next/server";
+import {
+    getFeaturedCampaigns,
+    getUserOrganizationsCampaigns,
+    getIndependentCampaigns,
+} from "@/lib/services/campaignService";
+import { getServerCtx } from "@/lib/auth/ctx";
 
 export const metadata: Metadata = {
     title: "Campagne - " + branding.appName,
 };
 
-async function createRequestObject() {
-    return {
-        headers: await headers(),
-        cookies: await cookies(),
-    } as unknown as NextRequest;
-}
-
 export default async function Page() {
-    const req = await createRequestObject();
-    
+    const ctx = await getServerCtx();
+
     const [featuredCampaigns, userOrgCampaigns, independentCampaigns] = await Promise.all([
-        getFeaturedCampaigns(req),
-        getUserOrganizationsCampaigns(req),
-        getIndependentCampaigns(req),
+        getFeaturedCampaigns(ctx),
+        getUserOrganizationsCampaigns(ctx),
+        getIndependentCampaigns(ctx),
     ]);
 
     const featuredCardItems = featuredCampaigns.map((campaign) => (
@@ -41,6 +37,8 @@ export default async function Page() {
     ));
 
     return <>
+    <div className={styles.body}>
+    <Title text="Esplora le campagne a cui puoi aderire" alignment="left" hierarchy={1} />
     <div className={styles.carouselContainer}>
         <Title text="Campagne in evidenza" alignment="left" hierarchy={2} />
         <Carousel
@@ -66,5 +64,6 @@ export default async function Page() {
             />
     </div>
     }
+    </div>
     </>
 }

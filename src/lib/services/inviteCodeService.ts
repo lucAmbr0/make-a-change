@@ -1,11 +1,6 @@
-import { NextRequest } from "next/server";
-import { ZodError, ZodIssue } from "zod";
-import { requireAuth } from "../auth/auth";
-import {
-  NotFoundError,
-  UnauthorizedError,
-  ValidationError,
-} from "../errors/ApiError";
+import { requireAuthCtx } from "../auth/auth";
+import type { RequestCtx } from "../auth/ctx";
+import { NotFoundError, ValidationError } from "../errors/ApiError";
 import {
   decrementInviteCodeUses,
   deleteInviteCodeByCodeInOrganization,
@@ -15,7 +10,6 @@ import {
   insertInviteCode,
   inviteCodeExists,
 } from "../db/invite_codes";
-import { searchMemberOfOrganization } from "../db/members";
 import {
   createInviteCodeInput,
   deleteInviteCodeInput,
@@ -25,14 +19,7 @@ import {
 import { authGetOrganization } from "./organizationService";
 import { addMemberForUser } from "./memberService";
 import { requireOrganizationModeratorOrOwner } from "../auth/permissions";
-
-async function requireModeratorOrOwner(
-  userId: number,
-  organizationId: number,
-) {
-  // Use centralized permission system (includes superuser bypass)
-  await requireOrganizationModeratorOrOwner(userId, organizationId);
-}
+import { parseBody } from "../api/body";
 
 function generateInviteCode(): string {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -62,61 +49,30 @@ async function generateUniqueInviteCode(): Promise<string> {
 }
 
 export async function authGetInviteCodes(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
 ) {
-  const auth = requireAuth(req);
-
-  // Verify the organization exists and is visible to this user
-  await authGetOrganization(req, organizationId);
-
-  await requireModeratorOrOwner(auth.userId, organizationId);
+  const auth = requireAuthCtx(ctx);
+  await authGetOrganization(ctx, organizationId);
+  await requireOrganizationModeratorOrOwner(auth.userId, organizationId, ctx);
 
   const inviteCodes: inviteCodeRowSchema[] = await getInviteCodesForOrganization(
     { organization_id: organizationId },
   );
-
   return inviteCodes;
 }
 
 export async function createInviteCode(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
 ) {
-  const auth = requireAuth(req);
+  const auth = requireAuthCtx(ctx);
+  await authGetOrganization(ctx, organizationId);
+  await requireOrganizationModeratorOrOwner(auth.userId, organizationId, ctx);
 
-  // Verify the organization exists and is visible to this user
-  await authGetOrganization(req, organizationId);
-
-  await requireModeratorOrOwner(auth.userId, organizationId);
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  let input: createInviteCodeInput;
-  try {
-    input = createInviteCodeInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: ZodIssue) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
+  const input = await parseBody(ctx, createInviteCodeInput);
 
   const code = await generateUniqueInviteCode();
-
   const expiresAt = input.expires_at ? new Date(input.expires_at) : null;
 
   const inviteCode: inviteCodeRowSchema = await insertInviteCode({
@@ -130,49 +86,20 @@ export async function createInviteCode(
 }
 
 export async function authDeleteInviteCode(
-  req: NextRequest,
+  ctx: RequestCtx,
   organizationId: number,
 ) {
-  const auth = requireAuth(req);
+  const auth = requireAuthCtx(ctx);
+  await authGetOrganization(ctx, organizationId);
+  await requireOrganizationModeratorOrOwner(auth.userId, organizationId, ctx);
 
-  // Verify the organization exists and is visible to this user
-  await authGetOrganization(req, organizationId);
-
-  await requireModeratorOrOwner(auth.userId, organizationId);
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  let input: deleteInviteCodeInput;
-  try {
-    input = deleteInviteCodeInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: ZodIssue) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
+  const input = await parseBody(ctx, deleteInviteCodeInput);
 
   const existingCode = await getInviteCodeByCodeInOrganization({
     code: input.code,
     organization_id: organizationId,
   });
-
-  if (!existingCode) {
-    throw new NotFoundError("Invite code not found.");
-  }
+  if (!existingCode) throw new NotFoundError("Invite code not found.");
 
   await deleteInviteCodeByCodeInOrganization({
     code: input.code,
@@ -182,39 +109,12 @@ export async function authDeleteInviteCode(
   return true;
 }
 
-export async function joinOrganizationWithInviteCode(req: NextRequest) {
-  const auth = requireAuth(req);
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    throw new ValidationError("Invalid JSON in request body", {
-      error: "Request body must be valid JSON",
-    });
-  }
-
-  let input: joinWithInviteCodeInput;
-  try {
-    input = joinWithInviteCodeInput.parse(body);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new ValidationError("Validation failed", {
-        errors: error.issues.map((err: ZodIssue) => ({
-          field: err.path.join("."),
-          message: err.message,
-          code: err.code,
-        })),
-      });
-    }
-    throw error;
-  }
+export async function joinOrganizationWithInviteCode(ctx: RequestCtx) {
+  const auth = requireAuthCtx(ctx);
+  const input = await parseBody(ctx, joinWithInviteCodeInput);
 
   const inviteCode = await getInviteCodeByCode({ code: input.invite_code });
-
-  if (!inviteCode) {
-    throw new NotFoundError("Invite code not found.");
-  }
+  if (!inviteCode) throw new NotFoundError("Invite code not found.");
 
   if (inviteCode.expires_at && inviteCode.expires_at < new Date()) {
     throw new ValidationError("Invite code has expired.", {
@@ -229,7 +129,6 @@ export async function joinOrganizationWithInviteCode(req: NextRequest) {
   }
 
   const member = await addMemberForUser(auth.userId, inviteCode.organization_id);
-
   await decrementInviteCodeUses({ id: inviteCode.id });
 
   return member;

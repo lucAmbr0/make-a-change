@@ -1,4 +1,4 @@
-import { InternalServerError, NotFoundError } from "../errors/ApiError";
+import { InternalServerError } from "../errors/ApiError";
 import {
   campaignResponseSchema,
   campaignRowSchema,
@@ -551,6 +551,56 @@ export async function getCampaignsWithoutOrganization(data: { user_id: number | 
         operation: "getCampaignsWithoutOrganization",
       },
     );
+  }
+}
+
+const UPDATABLE_CAMPAIGN_COLUMNS = [
+  "title",
+  "description",
+  "cover_path",
+  "signature_goal",
+  "is_public",
+  "comments_active",
+  "comments_require_approval",
+  "is_archived",
+] as const;
+
+type UpdatableCampaignColumn = (typeof UPDATABLE_CAMPAIGN_COLUMNS)[number];
+
+export async function updateCampaign(data: {
+  id: number;
+  fields: Partial<Record<UpdatableCampaignColumn, unknown>>;
+}) {
+  const entries = Object.entries(data.fields).filter(([key]) =>
+    (UPDATABLE_CAMPAIGN_COLUMNS as readonly string[]).includes(key),
+  );
+
+  if (entries.length === 0) {
+    throw new InternalServerError("No valid fields provided for update", {
+      operation: "updateCampaign",
+    });
+  }
+
+  const setClause = entries.map(([key]) => `${key} = ?`).join(", ");
+  const values = entries.map(([, value]) => value as never);
+
+  try {
+    await query(
+      `UPDATE campaigns SET ${setClause} WHERE id = ?`,
+      [...values, data.id],
+    );
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in updateCampaign:", error);
+      throw new InternalServerError("Failed to update campaign.", {
+        operation: "updateCampaign",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in updateCampaign:", error);
+    throw new InternalServerError("Failed to update campaign in database", {
+      operation: "updateCampaign",
+    });
   }
 }
 

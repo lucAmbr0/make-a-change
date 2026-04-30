@@ -9,94 +9,30 @@ import ProgressBar from "@/app/components/ui/ProgressBar/ProgressBar";
 import Paragraph from "@/app/components/ui/Typography/Paragraph/Paragraph";
 import Title from "@/app/components/ui/Typography/Title/Title";
 import { campaignResponseSchema } from "@/lib/schemas/campaigns";
-import { organizationResponseSchema } from "@/lib/schemas/organization";
-import { commentResponseSchema } from "@/lib/schemas/comments";
-import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import CommentBox from "@/app/components/ui/CommentBox/CommentBox";
-import { getCampaignsFromSameOrganization } from "@/lib/services/campaignService";
-import { NextRequest } from "next/server";
+import {
+    authGetCampaign,
+    getCampaignsFromSameOrganization,
+} from "@/lib/services/campaignService";
+import { authGetCampaignComments } from "@/lib/services/commentService";
+import { authGetOrganization } from "@/lib/services/organizationService";
+import { getServerCtx } from "@/lib/auth/ctx";
+import { NotFoundError } from "@/lib/errors/ApiError";
 import { Metadata } from "next";
 import branding from "@/app/components/logic/branding";
+import Banner from "@/app/components/ui/Banner/Banner";
+import { getOptionalAuth } from "@/lib/auth/auth";
+import { getMember } from "@/lib/services/memberService";
 
-async function getCampaign(campaignId: number) {
-    const requestHeaders = await headers();
-    const cookieStore = await cookies();
-    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-    const host = requestHeaders.get("host");
-
-    if (!host) {
-        throw new Error("Unable to resolve request host for campaign fetch");
+async function safeGetCampaign(campaignId: number) {
+    const ctx = await getServerCtx();
+    try {
+        return await authGetCampaign(ctx, campaignId);
+    } catch (error) {
+        if (error instanceof NotFoundError) notFound();
+        throw error;
     }
-
-    const response = await fetch(`${protocol}://${host}/api/campaign/${campaignId}`, {
-        cache: "no-store",
-        headers: {
-            cookie: cookieStore.toString(),
-        },
-    });
-
-    if (response.status === 404) {
-        notFound();
-    }
-
-    if (!response.ok) {
-        throw new Error(`Failed to load campaign ${campaignId}`);
-    }
-
-    const data = await response.json();
-    return campaignResponseSchema.parse(data);
-}
-
-async function getCampaignComments(campaignId: number) {
-    const requestHeaders = await headers();
-    const cookieStore = await cookies();
-    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-    const host = requestHeaders.get("host");
-
-    if (!host) {
-        throw new Error("Unable to resolve request host for comments fetch");
-    }
-
-    const response = await fetch(`${protocol}://${host}/api/campaign/${campaignId}/comments`, {
-        cache: "no-store",
-        headers: {
-            cookie: cookieStore.toString(),
-        },
-    });
-
-    if (!response.ok) {
-        console.error(`Failed to load comments for campaign ${campaignId}`);
-        return [];
-    }
-
-    const data = await response.json();
-    return data as commentResponseSchema[];
-}
-
-async function getOrganization(organizationId: number) {
-    const requestHeaders = await headers();
-    const cookieStore = await cookies();
-    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-    const host = requestHeaders.get("host");
-
-    if (!host) {
-        throw new Error("Unable to resolve request host for organization fetch");
-    }
-
-    const response = await fetch(`${protocol}://${host}/api/organization/${organizationId}`, {
-        cache: "no-store",
-        headers: {
-            cookie: cookieStore.toString(),
-        },
-    });
-
-    if (!response.ok) {
-        return null;
-    }
-
-    const data = await response.json();
-    return organizationResponseSchema.parse(data);
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ campaignId: string }> }): Promise<Metadata> {
@@ -104,16 +40,11 @@ export async function generateMetadata({ params }: { params: Promise<{ campaignI
     const parsedCampaignId = Number.parseInt(campaignId, 10);
 
     if (Number.isNaN(parsedCampaignId)) {
-        return {
-            title: branding.appName,
-        };
+        return { title: branding.appName };
     }
 
-    const campaign = await getCampaign(parsedCampaignId);
-
-    return {
-        title: `${campaign.title} - ${branding.appName}`,
-    };
+    const campaign = await safeGetCampaign(parsedCampaignId);
+    return { title: `${campaign.title} - ${branding.appName}` };
 }
 
 export const dynamic = "force-dynamic";
@@ -122,96 +53,132 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
     const { campaignId } = await params;
     const parsedCampaignId = Number.parseInt(campaignId, 10);
 
-    if (Number.isNaN(parsedCampaignId)) {
-        notFound();
+    if (Number.isNaN(parsedCampaignId)) notFound();
+
+    const ctx = await getServerCtx();
+
+    let campaign;
+    try {
+        campaign = await authGetCampaign(ctx, parsedCampaignId);
+    } catch (error) {
+        if (error instanceof NotFoundError) notFound();
+        throw error;
     }
 
-    const campaign = await getCampaign(parsedCampaignId);
-    const organization = campaign.organization_id ? await getOrganization(campaign.organization_id) : null;
-    const comments = campaign.comments_active ? await getCampaignComments(parsedCampaignId) : [];
-    
-    // Fetch campaigns from the same organization if it exists
-    let relatedCampaigns: campaignResponseSchema[] = [];
-    if (campaign.organization_id) {
-        try {
-            const req = {
-                headers: await headers(),
-                cookies: await cookies(),
-            } as unknown as NextRequest;
-            relatedCampaigns = await getCampaignsFromSameOrganization(req, campaign.organization_id, parsedCampaignId);
-        } catch (error) {
-            console.error("Failed to fetch related campaigns:", error);
-        }
-    }
+    const [organization, comments, relatedCampaigns] = await Promise.all([
+        campaign.organization_id
+            ? authGetOrganization(ctx, campaign.organization_id).catch(() => null)
+            : Promise.resolve(null),
+        campaign.comments_active
+            ? authGetCampaignComments(ctx, parsedCampaignId).catch(() => [])
+            : Promise.resolve([]),
+        campaign.organization_id
+            ? getCampaignsFromSameOrganization(
+                ctx,
+                campaign.organization_id,
+                parsedCampaignId,
+            ).catch(() => [] as campaignResponseSchema[])
+            : Promise.resolve([] as campaignResponseSchema[]),
+    ]);
 
     const relatedCampaignCards = relatedCampaigns.map((campaignItem) => (
         <CampaignCard key={campaignItem.id} campaign={campaignItem} href={`/campagne/${campaignItem.id}`} />
     ));
 
-    return <>
-        <div className={styles.campaignSummaryContainer}>
-            <div className={styles.campaignSummaryImageContainer}>
-                <img className={styles.campaignSummaryImage} src={campaign.cover_path || placeholders.campaignPlaceholderImage} alt={"Immagine campagna"} />
-            </div>
-            <div className={styles.campaignSummaryTextContainer}>
-                <h1>{campaign.title}</h1>
-                <h2>{campaign.organization_name}</h2>
-                <div className={styles.actionsContainer}>
-                    <Button text="Sostieni" icon="list-alt-check" type="filled" />
-                    <Button text="Condividi" icon="share" type="outlined" />
-                </div>
-                <div className={styles.progressBar}>
-                    <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
-                </div>
-            </div>
-        </div>
-        <div className={styles.campaignInfoBodyContainer}>
-            <Title text="Informazioni su questa proposta" hierarchy={2} />
-            <Paragraph text={campaign.description} color="accent-950" alignment="justify" />
-        </div>
-        {organization &&
-            <div className={styles.organizationInfoContainer}>
-                <div className={styles.organizationCardContainer}>
-                    {/* organization card placeholder */}
-                    <OrganizationCard organization={organization} />
-                </div>
-                <div className={styles.organizationInfoText}>
-                    <Title text="Informazioni sull'ente promotore" hierarchy={2} />
-                    <Paragraph text={organization.description || ""} color="accent-950" alignment="justify" />
-                </div>
-            </div>
-        }
-        {campaign.comments_active ? (
-            <div className={styles.commentsSectionContainer}>
-                <Title text="Commenti" hierarchy={2} />
-                <div className={styles.addCommentBox}>
-                    <AddCommentBox />
-                </div>
-                <div className={styles.commentsContainer}>
-                    {comments.map((comment) => (
-                        <CommentBox
-                            key={comment.id}
-                            authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
-                            commentText={comment.text}
-                            commentId={comment.id}
-                            authorId={comment.user_id}
-                            campaignId={parsedCampaignId}
-                            campaignCreatorId={campaign.creator_id}
-                            organizationId={campaign.organization_id ?? undefined}
-                        />
-                    ))}
-                </div>
-            </div>
-        ) : null}
-        {organization && relatedCampaigns.length > 0 &&
-            <div className={styles.commentsSectionContainer}>
-                <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
-                <Carousel
-                    direction="horizontal"
-                    items={relatedCampaignCards}
-                />
-            </div>
-        }
+    const auth = getOptionalAuth(ctx);
 
-    </>
+    let userRole = "";
+    if (auth.userId !== null) {
+        if (campaign.creator_id === auth.userId) {
+            userRole = "proprietario";
+        } else if (campaign.organization_id) {
+            const memberRecord = await getMember(auth.userId, campaign.organization_id);
+            if (memberRecord?.is_owner) {
+                userRole = "proprietario dell'organizzazione";
+            } else if (memberRecord?.is_moderator) {
+                userRole = "moderatore nell'organizzazione";
+            }
+        }
+    }
+
+    const showRoleBanner = userRole !== "" && campaign.permissions?.can_edit;
+
+    return <>
+    {showRoleBanner && (
+        <Banner
+            primaryLabel={"Sei " + userRole + " di questa campagna."}
+            actions={
+                <Button
+                    href={`/campagne/${parsedCampaignId}/edit`}
+                    text="Modifica campagna"
+                    icon="edit"
+                    type="outlined"
+                    textSize={18}
+                />
+            }
+        />
+    )}
+    <div className={styles.campaignSummaryContainer}>
+        <div className={styles.campaignSummaryImageContainer}>
+            <img className={styles.campaignSummaryImage} src={campaign.cover_path || placeholders.campaignPlaceholderImage} alt={"Immagine campagna"} />
+        </div>
+        <div className={styles.campaignSummaryTextContainer}>
+            <h1>{campaign.title}</h1>
+            <h2>{campaign.organization_name}</h2>
+            <div className={styles.actionsContainer}>
+                <Button text="Sostieni" icon="list-alt-check" type="filled" />
+                <Button text="Condividi" icon="share" type="outlined" />
+            </div>
+            <div className={styles.progressBar}>
+                <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
+            </div>
+        </div>
+    </div>
+    <div className={styles.campaignInfoBodyContainer}>
+        <Title text="Informazioni su questa proposta" hierarchy={2} />
+        <Paragraph text={campaign.description} color="accent-950" alignment="justify" />
+    </div>
+    {organization &&
+        <div className={styles.organizationInfoContainer}>
+            <div className={styles.organizationCardContainer}>
+                <OrganizationCard organization={organization} />
+            </div>
+            <div className={styles.organizationInfoText}>
+                <Title text="Informazioni sull'ente promotore" hierarchy={2} />
+                <Paragraph text={organization.description || ""} color="accent-950" alignment="justify" />
+            </div>
+        </div>
+    }
+    {campaign.comments_active ? (
+        <div className={styles.commentsSectionContainer}>
+            <Title text="Commenti" hierarchy={2} />
+            <div className={styles.addCommentBox}>
+                <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />
+            </div>
+            <div className={styles.commentsContainer}>
+                {comments.map((comment) => (
+                    <CommentBox
+                        key={comment.id}
+                        authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
+                        commentText={comment.text}
+                        commentId={comment.id}
+                        authorId={comment.user_id}
+                        campaignId={parsedCampaignId}
+                        canDelete={comment.permissions?.can_delete ?? false}
+                    />
+                ))}
+            </div>
+        </div>
+    ) : null}
+    {organization && relatedCampaigns.length > 0 &&
+        <div className={styles.commentsSectionContainer}>
+            <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
+            <Carousel
+                direction="horizontal"
+                items={relatedCampaignCards}
+            />
+        </div>
+    }
+
+</>
 }
