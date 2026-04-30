@@ -42,6 +42,8 @@ export async function GET(
       creator_last_name: organization.creator_last_name,
       created_at: organization.created_at,
       cover_path: organization.cover_path,
+      members_count: organization.members_count || 0,
+      campaigns_count: organization.campaigns_count || 0,
       is_public: organization.is_public,
       requires_approval: organization.requires_approval
     }, { status: 200 });

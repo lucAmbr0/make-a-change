@@ -124,6 +124,8 @@ export async function getOrganization(data: {
         `
         SELECT DISTINCT
           o.*,
+          COALESCE((SELECT COUNT(*) FROM members WHERE organization_id = o.id), 0) AS members_count,
+          COALESCE((SELECT COUNT(*) FROM campaigns WHERE organization_id = o.id), 0) AS campaigns_count,
           u.first_name as creator_first_name,
           u.last_name as creator_last_name
         FROM organizations AS o

@@ -13,9 +13,9 @@ export default function OrganizationCard({ organization: organization }: { organ
             <p className={styles.organizationCategory}>{organization.category || "Altre categorie"}</p>
             <div className={styles.statsContainer}>
                 <Icon icon={'material-symbols:diversity-3'} width="18" height="18" />
-                <p>{10} membri</p>
+                <p>{organization.members_count ?? 0} membri</p>
                 <Icon icon={'material-symbols:docs-outline'} width="18" height="18" />
-                <p>{20} campagne</p>
+                <p>{organization.campaigns_count ?? 0} campagne</p>
             </div>
         </div>
     );

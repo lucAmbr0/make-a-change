@@ -150,7 +150,9 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
 
     return <>
         <div className={styles.campaignSummaryContainer}>
-            <img className={styles.campaignSummaryImage} src={campaign.cover_path || placeholders.campaignPlaceholderImage} alt={"Immagine campagna"} />
+            <div className={styles.campaignSummaryImageContainer}>
+                <img className={styles.campaignSummaryImage} src={campaign.cover_path || placeholders.campaignPlaceholderImage} alt={"Immagine campagna"} />
+            </div>
             <div className={styles.campaignSummaryTextContainer}>
                 <h1>{campaign.title}</h1>
                 <h2>{campaign.organization_name}</h2>

@@ -5,6 +5,16 @@
     grid-template-columns: 660px auto;
     gap: 40px;
     margin: 100px 10%;
+    overflow: hidden;
+}
+
+.campaignSummaryImageContainer {
+    width: 660px;
+    height: 400px;
+    border-radius: 32px;
+    border: solid 1px var(--accent-300);
+    overflow: hidden;
+    display: block;
 }
 
 .campaignSummaryImage {
@@ -12,7 +22,13 @@
     height: 400px;
     object-fit: cover;
     border-radius: 32px;
-    border: solid 1px var(--accent-300);
+    transition: transform 0.35s ease;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.campaignSummaryImage:hover {
+    transform: scale(1.10);
 }
 
 .campaignSummaryTextContainer {

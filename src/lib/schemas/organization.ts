@@ -46,6 +46,8 @@ export const organizationResponseSchema = zod.object({
   cover_path: zod.string().max(2048).nullable().optional(),
   is_public: zod.boolean().or(zod.number()).transform(val => Boolean(val)),
   requires_approval: zod.boolean().or(zod.number()).transform(val => Boolean(val)),
+  members_count: zod.number().int().nonnegative().optional(),
+  campaigns_count: zod.number().int().nonnegative().optional(),
 });
 
 export type organizationResponseSchema = zod.infer<
