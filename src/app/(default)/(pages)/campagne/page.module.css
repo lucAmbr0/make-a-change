@@ -9,9 +9,10 @@
 
 @media (max-width: 768px) {
     .body {
-        padding-inline: 12px;
+        margin: 0 10px;
+        padding-inline: 6px;
     }
     .carouselContainer {
-        margin: 50px 0;
+        margin: 36px 0;
     }
 }

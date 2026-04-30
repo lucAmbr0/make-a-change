@@ -26,7 +26,7 @@ export function verifyToken(token: string): JWTPayload | null {
 
 export function setSessionCookie(res: any, token: string) {
   // res is Next.js Response object in API route handlers
-  const cookie = `${COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
+  const cookie = `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24 * 7}`;
   // Support NextResponse (has headers or cookies helpers) and Node res.setHeader
   if (res && typeof res.headers?.set === "function") {
     // NextResponse: headers is a Headers instance

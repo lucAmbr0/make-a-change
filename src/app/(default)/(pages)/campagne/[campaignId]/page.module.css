@@ -41,7 +41,7 @@
 }
 
 .progressBar {
-    width: 70%;
+    width: 250px;
     margin-top: auto;
 }
 
@@ -114,16 +114,16 @@
     .campaignSummaryContainer {
         grid-template-columns: 1fr;
         gap: 24px;
-        margin: 40px 16px;
+        margin: 32px 10px;
     }
 
     .campaignSummaryImageContainer {
         max-width: 100%;
-        border-radius: 24px;
+        border-radius: 12px;
     }
 
     .campaignSummaryImage {
-        border-radius: 24px;
+        border-radius: 12px;
     }
 
     .campaignSummaryTextContainer {
@@ -148,13 +148,13 @@
 
     .campaignInfoBodyContainer,
     .commentsSectionContainer {
-        margin: 50px 16px;
+        margin: 36px 10px;
     }
 
     .organizationInfoContainer {
         grid-template-columns: 1fr;
         gap: 24px;
-        margin: 50px 16px;
+        margin: 36px 10px;
     }
 
     .organizationCardContainer {

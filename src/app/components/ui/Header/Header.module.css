@@ -71,9 +71,9 @@
         grid-template-areas:
             "top top"
             "center center";
-        column-gap: 10px;
-        row-gap: 6px;
-        padding: 8px 12px 10px;
+        column-gap: 8px;
+        row-gap: 4px;
+        padding: 6px 10px 8px;
         position: sticky;
         top: 0;
         z-index: 20;
@@ -81,6 +81,7 @@
 
     .topRow {
         grid-area: top;
+        gap: 8px;
     }
 
     .centerSlot {
@@ -100,31 +101,49 @@
     }
 
     .headerTitle {
-        font-size: clamp(1.25rem, 5vw, 1.5rem);
+        font-size: clamp(1.05rem, 4.4vw, 1.35rem);
         text-align: left;
         white-space: nowrap;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .titleText {
+        font-size: inherit;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .logo {
+        height: 22px;
+        margin: auto 6px auto 0;
     }
 }
 
 @media (max-width: 560px) {
     .header {
-        padding: 8px 10px 9px;
+        padding: 5px 8px 7px;
         transition: padding 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
     }
 
     .topRow {
         overflow: hidden;
-        max-height: 72px;
+        max-height: 64px;
         transition: max-height 220ms ease, opacity 180ms ease, transform 220ms ease;
     }
 
     .headerTitle {
-        font-size: clamp(1.05rem, 5.3vw, 1.22rem);
+        font-size: clamp(0.95rem, 4.6vw, 1.1rem);
+    }
+
+    .logo {
+        height: 20px;
+        margin: auto 5px auto 0;
     }
 
     .headerCompact {
-        padding-top: 4px;
-        padding-bottom: 6px;
+        padding-top: 3px;
+        padding-bottom: 5px;
         row-gap: 0;
         box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
     }

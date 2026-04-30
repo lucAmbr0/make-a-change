@@ -60,3 +60,18 @@
     border: none;
     color: var(--accent-900);
 }
+
+@media (max-width: 768px) {
+    .button {
+        padding: 7px 14px;
+        font-size: 14px;
+    }
+
+    .iconLeft {
+        margin: auto 7px auto 0;
+    }
+
+    .iconRight {
+        margin: auto 0 auto 7px;
+    }
+}
