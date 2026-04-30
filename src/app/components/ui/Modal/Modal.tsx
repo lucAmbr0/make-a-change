@@ -1,7 +1,8 @@
 'use client';
 
 import styles from './Modal.module.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export function Modal({
   open,
@@ -22,6 +23,12 @@ export function Modal({
   borderColor?: string;
   boxShadow?: string;
 }) {
+  const [portalElement, setPortalElement] = useState<Element | null>(null);
+
+  useEffect(() => {
+    setPortalElement(document.body);
+  }, []);
+
   useEffect(() => {
     function handleKey(e: { key: string; }) {
       if (e.key === 'Escape') onClose();
@@ -37,9 +44,9 @@ export function Modal({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !portalElement) return null;
 
-  return (
+  const modalContent = (
     <div
       className={
         overlayType === 'dark'
@@ -65,4 +72,6 @@ export function Modal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, portalElement);
 }

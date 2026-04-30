@@ -102,9 +102,11 @@ export default function CommentBox({
 
     if (deleted) return null;
 
+    const containerClassName = isOwner ? styles.userComment : styles.otherComment;
+
     return (
         <>
-            <div className={styles.container}>
+            <div className={`${styles.container} ${containerClassName}`}>
                 <div className={styles.headerRow}>
                     <h4 className={styles.authorName}>{authorName || "Anonimo"}</h4>
                     {canDelete && (

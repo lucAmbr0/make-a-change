@@ -100,10 +100,10 @@
 }
 
 .commentsContainer {
-    width: 600px;
-    max-width: 75%;
-    margin-left: auto;
+    /* width: 600px; */
+    /* max-width: 75%; */
+    /* margin-left: auto; */
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 20px;
 }

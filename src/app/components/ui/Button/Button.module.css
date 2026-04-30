@@ -27,11 +27,12 @@
 
 .filled:hover {
     color: var(--accent-50);
+    background-color: var(--accent-700);
     transform: translateY(-2px);
 }
 
 .filled:active {
-    background-color: var(--accent-700);
+    background-color: var(--accent-600);
     transform: translateY(1px);
 }
 
