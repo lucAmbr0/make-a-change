@@ -43,7 +43,7 @@ export default function Header() {
 
     return <header className={`${styles.header} ${isCompact ? styles.headerCompact : ''}`}>
         <div className={styles.topRow}>
-            <Link href={'/'} className={`${styles.headerTitle} ${styles.leftSlot}`}><h1 className={styles.headerTitle}>{branding.appName}</h1></Link>
+            <Link href={'/'} className={`${styles.headerTitle} ${styles.leftSlot}`}><img src={branding.logo} className={styles.logo} alt={branding.appName} /><h1 className={styles.titleText}>{branding.appName}</h1></Link>
             <div className={styles.rightSlot}>
                 <Profile />
             </div>
