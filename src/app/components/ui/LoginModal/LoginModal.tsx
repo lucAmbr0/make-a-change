@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Modal } from "@/app/components/ui/Modal/Modal";
 import { useUser } from "@/app/components/logic/UserProvider";
 import styles from "./LoginModal.module.css";
@@ -171,9 +172,9 @@ export default function LoginModal({
                 <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
                     {isSubmitting ? "Accesso in corso..." : "Accedi"}
                 </button>
-                <a href="#" className={styles.signupLink} onClick={(event) => event.preventDefault()}>
+                <Link href="/signup" className={styles.signupLink} onClick={handleClose}>
                     Crea il tuo account
-                </a>
+                </Link>
             </form>
         </Modal>
     );

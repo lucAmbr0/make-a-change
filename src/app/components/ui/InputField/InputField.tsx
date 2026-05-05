@@ -13,8 +13,9 @@ export default function InputField({
     max,
     placeholder,
     label,
+    onChange,
 }: {
-    type?: "text" | "email" | "number" | "checkbox" | "password" | "date",
+    type?: "text" | "email" | "number" | "checkbox" | "password" | "date" | "tel",
     required?: boolean,
     checked?: boolean,
     disabled?: boolean,
@@ -22,10 +23,11 @@ export default function InputField({
     defaultValue?: string,
     minLength?: number,
     maxLength?: number,
-    min?: number,
-    max?: number,
+    min?: number | string,
+    max?: number | string,
     placeholder?: string
-    label?: string
+    label?: string,
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
     const labelEl = <label htmlFor={title} className={styles.label}>{label}</label>;
     let inputEl;
@@ -34,6 +36,7 @@ export default function InputField({
         case 'number':
         case 'password':
         case 'email':
+        case 'tel':
             inputEl =
                 <input
                     className={styles.textInput}
@@ -47,6 +50,7 @@ export default function InputField({
                     min={min}
                     max={max}
                     placeholder={placeholder}
+                    onChange={onChange}
                 />
             ;
             break;
@@ -64,6 +68,7 @@ export default function InputField({
                     min={min}
                     max={max}
                     placeholder={placeholder}
+                    onChange={onChange}
                 />
             ;
             break;
