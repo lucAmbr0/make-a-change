@@ -1,0 +1,9 @@
+.form {
+    margin: 50px 20%;
+}
+
+.userDataInputContainer {
+    display: grid;
+    grid-template-columns: 300px 300px;
+    gap: 40px 20px;
+}

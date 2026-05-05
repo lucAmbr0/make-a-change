@@ -1,0 +1,26 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.label {
+    font-family: var(--font-inter);
+    font-size: 16px;
+    color: var(--accent-950);
+}
+
+.textInput {
+    padding: 5px 10px;
+    font-family: var(--font-inter);
+    font-size: 16px;
+    border: solid 1px var(--accent-300);
+    background-color: var(--accent-100);
+    border-radius: 12px;
+    color: var(--accent-900);
+}
+
+.textInput::placeholder {
+    color: var(--accent-950);
+    opacity: 0.8;
+}
