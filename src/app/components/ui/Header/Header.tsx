@@ -13,14 +13,21 @@ export default function Header() {
     useEffect(() => {
         let rafId = 0;
         let lastScrollY = window.scrollY;
+        // Deadzone prevents flicker from mobile scroll noise (momentum, address-bar
+        // resize, layout shift caused by the compact transition itself).
+        const DELTA_THRESHOLD = 8;
 
         const updateHeaderState = () => {
+            rafId = 0;
             const currentScrollY = window.scrollY;
-            const nextCompact = currentScrollY > 24 && currentScrollY > lastScrollY;
+            const delta = currentScrollY - lastScrollY;
+
+            if (Math.abs(delta) < DELTA_THRESHOLD) {
+                return;
+            }
 
             lastScrollY = currentScrollY;
-            setIsCompact(nextCompact);
-            rafId = 0;
+            setIsCompact(currentScrollY > 24 && delta > 0);
         };
 
         const handleScroll = () => {

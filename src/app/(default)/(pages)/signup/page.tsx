@@ -340,7 +340,7 @@ export default function Page() {
             </div>
             {/* <InputField type='checkbox' required label='Accetto i termini e condizioni' title={''} /> */}
             {apiError && <p className={styles.apiError}>{apiError}</p>}
-            <div style={{ opacity: isLoading ? 0.6 : 1, pointerEvents: isLoading ? 'none' : 'auto' }}>
+            <div className={styles.submitButtonContainer} style={{ opacity: isLoading ? 0.6 : 1, pointerEvents: isLoading ? 'none' : 'auto' }}>
                 <Button text={isLoading ? 'Creazione in corso...' : 'Crea account'} icon='material-symbols:add-circle-outline' />
             </div>
         </form>

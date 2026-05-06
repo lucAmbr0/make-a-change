@@ -41,7 +41,11 @@
 
     .profileHeader {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+    }
+
+    .profileHeader > div {
+        width: 100%;
     }
 
     .profileHeader h1 {

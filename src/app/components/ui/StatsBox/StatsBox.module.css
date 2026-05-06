@@ -38,3 +38,28 @@
     text-align: center;
     margin: 10px 20px;
 }
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        padding: 16px 0;
+    }
+
+    .container > *:not(:first-child) {
+        border-left: 0;
+        border-top: 1px solid var(--accent-300);
+        padding-left: 0;
+        margin-left: 0;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .statsValue {
+        font-size: 30px;
+    }
+
+    .statsLabel {
+        margin: 8px 14px 0;
+        font-size: 14px;
+    }
+}

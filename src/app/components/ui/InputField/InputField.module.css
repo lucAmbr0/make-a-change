@@ -24,3 +24,20 @@
     color: var(--accent-950);
     opacity: 0.8;
 }
+
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+    }
+
+    .label,
+    .textInput {
+        width: 100%;
+    }
+
+    .textInput {
+        box-sizing: border-box;
+        max-width: 100%;
+        min-width: 0;
+    }
+}
