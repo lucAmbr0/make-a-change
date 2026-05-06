@@ -554,6 +554,200 @@ export async function getCampaignsWithoutOrganization(data: { user_id: number | 
   }
 }
 
+export async function getRepostedCampaignsByUserForViewer(data: {
+  target_user_id: number;
+  viewer_user_id: number | null;
+  limit?: number;
+}) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM reposts AS r
+        INNER JOIN campaigns AS c ON c.id = r.campaign_id
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m
+          ON c.organization_id = m.organization_id
+          AND m.user_id = ?
+      WHERE r.user_id = ?
+        AND (
+          c.is_public = 1
+          OR c.creator_id = ?
+          OR m.user_id IS NOT NULL
+        )
+      ORDER BY c.created_at DESC
+      LIMIT ?
+      `,
+      [
+        data.viewer_user_id || null,
+        data.target_user_id,
+        data.viewer_user_id || null,
+        data.limit || 15,
+      ],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getRepostedCampaignsByUserForViewer:", error);
+      throw new InternalServerError(
+        "Failed to get reposted campaigns.",
+        {
+          operation: "getRepostedCampaignsByUserForViewer",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getRepostedCampaignsByUserForViewer:", error);
+    throw new InternalServerError(
+      "Failed to retrieve reposted campaigns from database",
+      {
+        operation: "getRepostedCampaignsByUserForViewer",
+      },
+    );
+  }
+}
+
+export async function getSignedCampaignsByUserForViewer(data: {
+  target_user_id: number;
+  viewer_user_id: number | null;
+  limit?: number;
+}) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM signatures AS s
+        INNER JOIN campaigns AS c ON c.id = s.campaign_id
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m
+          ON c.organization_id = m.organization_id
+          AND m.user_id = ?
+      WHERE s.signer_id = ?
+        AND (
+          c.is_public = 1
+          OR c.creator_id = ?
+          OR m.user_id IS NOT NULL
+        )
+      ORDER BY c.created_at DESC
+      LIMIT ?
+      `,
+      [
+        data.viewer_user_id || null,
+        data.target_user_id,
+        data.viewer_user_id || null,
+        data.limit || 15,
+      ],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getSignedCampaignsByUserForViewer:", error);
+      throw new InternalServerError(
+        "Failed to get signed campaigns.",
+        {
+          operation: "getSignedCampaignsByUserForViewer",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getSignedCampaignsByUserForViewer:", error);
+    throw new InternalServerError(
+      "Failed to retrieve signed campaigns from database",
+      {
+        operation: "getSignedCampaignsByUserForViewer",
+      },
+    );
+  }
+}
+
+export async function getCampaignsCreatedByUserForViewer(data: {
+  target_user_id: number;
+  viewer_user_id: number | null;
+  limit?: number;
+}) {
+  try {
+    const rows = await query<campaignResponseSchema>(
+      `
+      SELECT DISTINCT
+        c.*,
+        COALESCE(sc.signatures, 0) AS signatures,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name,
+        o.name as organization_name
+      FROM campaigns AS c
+        LEFT JOIN users AS u ON c.creator_id = u.id
+        LEFT JOIN organizations AS o ON c.organization_id = o.id
+        LEFT JOIN (
+          SELECT campaign_id, COUNT(id) AS signatures
+          FROM signatures
+          GROUP BY campaign_id
+        ) AS sc ON sc.campaign_id = c.id
+        LEFT JOIN members AS m
+          ON c.organization_id = m.organization_id
+          AND m.user_id = ?
+      WHERE c.creator_id = ?
+        AND (
+          c.is_public = 1
+          OR c.creator_id = ?
+          OR m.user_id IS NOT NULL
+        )
+      ORDER BY c.created_at DESC
+      LIMIT ?
+      `,
+      [
+        data.viewer_user_id || null,
+        data.target_user_id,
+        data.viewer_user_id || null,
+        data.limit || 15,
+      ],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getCampaignsCreatedByUserForViewer:", error);
+      throw new InternalServerError(
+        "Failed to get created campaigns.",
+        {
+          operation: "getCampaignsCreatedByUserForViewer",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getCampaignsCreatedByUserForViewer:", error);
+    throw new InternalServerError(
+      "Failed to retrieve created campaigns from database",
+      {
+        operation: "getCampaignsCreatedByUserForViewer",
+      },
+    );
+  }
+}
+
 const UPDATABLE_CAMPAIGN_COLUMNS = [
   "title",
   "description",
@@ -609,7 +803,7 @@ export async function deleteCampaign(data: { id: number }) {
     // First delete dependent records
     await query(
       `
-      DELETE FROM favorites
+      DELETE FROM reposts
       WHERE campaign_id = ?
       `,
       [data.id],

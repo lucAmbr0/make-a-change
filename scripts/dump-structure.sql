@@ -87,15 +87,15 @@ CREATE TABLE IF NOT EXISTS `comments` (
 
 -- L’esportazione dei dati non era selezionata.
 
--- Dump della struttura di tabella make_a_change.favorites
-DROP TABLE IF EXISTS `favorites`;
-CREATE TABLE IF NOT EXISTS `favorites` (
+-- Dump della struttura di tabella make_a_change.reposts
+DROP TABLE IF EXISTS `reposts`;
+CREATE TABLE IF NOT EXISTS `reposts` (
   `user_id` int(11) NOT NULL,
   `campaign_id` int(11) NOT NULL,
   PRIMARY KEY (`user_id`,`campaign_id`),
   KEY `campaign_id` (`campaign_id`),
-  CONSTRAINT `fav_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fav_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `repost_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `repost_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- L’esportazione dei dati non era selezionata.

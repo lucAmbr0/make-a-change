@@ -238,27 +238,27 @@ INSERT INTO `comments` (user_id, campaign_id, text, created_at, visible) VALUES
 (6, 10, 'Meraviglioso per i pendolari come me! Finalmente una alternativa sicura alle auto.', '2026-03-16 11:45:00', 1),
 (10, 10, 'Ho calcolato che potrei risparmiare €3000 all''anno in carburante e parcheggio. Supporto pieno.', '2026-03-16 13:15:00', 1);
 
--- FAVORITES (varied distribution across users)
-INSERT INTO `favorites` (user_id, campaign_id) VALUES
--- User 1 favorites: campaigns 1, 6, 10
+-- REPOSTS (varied distribution across users)
+INSERT INTO `reposts` (user_id, campaign_id) VALUES
+-- User 1 reposts: campaigns 1, 6, 10
 (1, 1), (1, 6), (1, 10),
--- User 2 favorites: campaigns 3, 6, 8
+-- User 2 reposts: campaigns 3, 6, 8
 (2, 3), (2, 6), (2, 8),
--- User 3 favorites: campaigns 1, 2, 3, 5, 7
+-- User 3 reposts: campaigns 1, 2, 3, 5, 7
 (3, 1), (3, 2), (3, 3), (3, 5), (3, 7),
--- User 4 favorites: campaigns 1, 3, 8, 10
+-- User 4 reposts: campaigns 1, 3, 8, 10
 (4, 1), (4, 3), (4, 8), (4, 10),
--- User 5 favorites: campaigns 1, 2, 6, 9
+-- User 5 reposts: campaigns 1, 2, 6, 9
 (5, 1), (5, 2), (5, 6), (5, 9),
--- User 6 favorites: campaigns 1, 6
+-- User 6 reposts: campaigns 1, 6
 (6, 1), (6, 6),
--- User 7 favorites: campaigns 3, 6, 10
+-- User 7 reposts: campaigns 3, 6, 10
 (7, 3), (7, 6), (7, 10),
--- User 8 favorites: campaigns 3, 8
+-- User 8 reposts: campaigns 3, 8
 (8, 3), (8, 8),
--- User 9 favorites: campaigns 5, 7
+-- User 9 reposts: campaigns 5, 7
 (9, 5), (9, 7),
--- User 10 favorites: campaign 6
+-- User 10 reposts: campaign 6
 (10, 6);
 
 SET @@FOREIGN_KEY_CHECKS=1;

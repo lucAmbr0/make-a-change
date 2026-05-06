@@ -32,7 +32,7 @@ interface CreateCampaignPayload {
   comments_require_approval: boolean;
 }
 
-interface CampaignFavoritePayload {
+interface CampaignRepostPayload {
   campaign_id: number;
 }
 
@@ -138,7 +138,7 @@ interface EndpointDefinition {
     | "SignupPayload"
     | "LoginPayload"
     | "CreateCampaignPayload"
-    | "CampaignFavoritePayload"
+    | "CampaignRepostPayload"
     | "CampaignCommentCreatePayload"
     | "CampaignCommentDeletePayload"
     | "CampaignCommentModerationPayload"
@@ -296,36 +296,36 @@ const ENDPOINTS: EndpointDefinition[] = [
     requiresAuth: true,
   },
   {
-    id: "campaign-fav-list",
+    id: "campaign-repost-list",
     domain: "Campaigns",
-    entityLabels: ["favorites", "campaigns"],
-    title: "List favorites",
+    entityLabels: ["reposts", "campaigns"],
+    title: "List reposts",
     method: "GET",
-    path: "/api/campaign/favorites",
+    path: "/api/campaign/reposts",
     requiresAuth: true,
   },
   {
-    id: "campaign-fav-add",
+    id: "campaign-repost-add",
     domain: "Campaigns",
-    entityLabels: ["favorites", "campaigns"],
-    title: "Add favorite",
+    entityLabels: ["reposts", "campaigns"],
+    title: "Add repost",
     method: "POST",
-    path: "/api/campaign/favorites",
+    path: "/api/campaign/reposts",
     supportsBody: true,
     requiresAuth: true,
-    bodyType: "CampaignFavoritePayload",
+    bodyType: "CampaignRepostPayload",
     fields: [{ key: "campaign_id", label: "campaign_id", type: "number", placeholder: "1" }],
   },
   {
-    id: "campaign-fav-remove",
+    id: "campaign-repost-remove",
     domain: "Campaigns",
-    entityLabels: ["favorites", "campaigns"],
-    title: "Remove favorite",
+    entityLabels: ["reposts", "campaigns"],
+    title: "Remove repost",
     method: "DELETE",
-    path: "/api/campaign/favorites",
+    path: "/api/campaign/reposts",
     supportsBody: true,
     requiresAuth: true,
-    bodyType: "CampaignFavoritePayload",
+    bodyType: "CampaignRepostPayload",
     fields: [{ key: "campaign_id", label: "campaign_id", type: "number", placeholder: "1" }],
   },
   {
@@ -686,7 +686,7 @@ const ENDPOINTS: EndpointDefinition[] = [
 
 const DOMAIN_LABELS: Record<Domain, string[]> = {
   Auth: ["users"],
-  Campaigns: ["campaigns", "comments", "favorites", "signatures"],
+  Campaigns: ["campaigns", "comments", "reposts", "signatures"],
   Organizations: ["organizations", "members", "invite_codes", "approval_requests"],
   Notifications: ["notifications"],
 };
@@ -777,7 +777,7 @@ function isAuthBodyType(
   | SignupPayload
   | LoginPayload
   | CreateCampaignPayload
-  | CampaignFavoritePayload
+  | CampaignRepostPayload
   | CampaignCommentCreatePayload
   | CampaignCommentDeletePayload
   | CampaignCommentModerationPayload
@@ -799,7 +799,7 @@ function isAuthBodyType(
     | SignupPayload
     | LoginPayload
     | CreateCampaignPayload
-    | CampaignFavoritePayload
+    | CampaignRepostPayload
     | CampaignCommentCreatePayload
     | CampaignCommentDeletePayload
     | CampaignCommentModerationPayload

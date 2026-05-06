@@ -1,35 +1,35 @@
 import zod from "zod";
 
-export const favoriteRowSchema = zod.object({
+export const repostRowSchema = zod.object({
   user_id: zod.number().int(),
   campaign_id: zod.number().int(),
 });
 
-export type favoriteRowSchema = zod.infer<typeof favoriteRowSchema>;
+export type repostRowSchema = zod.infer<typeof repostRowSchema>;
 
-export const addFavoriteInput = zod.object({
+export const addRepostInput = zod.object({
   campaign_id: zod
     .number({ message: "Campaign ID is required" })
     .int("Campaign ID must be an integer")
     .positive("Campaign ID must be a positive number"),
 });
 
-export type addFavoriteInput = zod.infer<typeof addFavoriteInput>;
+export type addRepostInput = zod.infer<typeof addRepostInput>;
 
-export const removeFavoriteInput = zod.object({
+export const removeRepostInput = zod.object({
   campaign_id: zod
     .number({ message: "Campaign ID is required" })
     .int("Campaign ID must be an integer")
     .positive("Campaign ID must be a positive number"),
 });
 
-export type removeFavoriteInput = zod.infer<typeof removeFavoriteInput>;
+export type removeRepostInput = zod.infer<typeof removeRepostInput>;
 
-export const favoriteCampaignResponseSchema = zod.object({
+export const repostCampaignResponseSchema = zod.object({
   id: zod.number().int(),
   title: zod.string().max(64),
 });
 
-export type favoriteCampaignResponseSchema = zod.infer<
-  typeof favoriteCampaignResponseSchema
+export type repostCampaignResponseSchema = zod.infer<
+  typeof repostCampaignResponseSchema
 >;

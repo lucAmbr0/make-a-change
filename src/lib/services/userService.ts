@@ -1,11 +1,17 @@
 import { comparePassword, hashPassword } from "../auth/hash";
 import { insertUser, getUserByEmail, getUserById } from "../db/users";
 import {
+  getCampaignsCreatedByUserForViewer,
+  getRepostedCampaignsByUserForViewer,
+  getSignedCampaignsByUserForViewer,
+} from "../db/campaigns";
+import { getOrganizationsForMemberForViewer } from "../db/organizations";
+import {
   createUserInput,
   publicUserRowSchema,
   userAuthenticationInput,
 } from "../schemas/users";
-import { requireAuthCtx } from "../auth/auth";
+import { getOptionalAuth, requireAuthCtx } from "../auth/auth";
 import type { RequestCtx } from "../auth/ctx";
 import {
   ConflictError,
@@ -15,6 +21,7 @@ import {
 } from "../errors/ApiError";
 import { DBError } from "../db/query";
 import { signToken } from "../auth/auth";
+import { decorateCampaigns } from "./permissionsDecorator";
 
 export async function createUser(input: createUserInput) {
   let password_hashed: string;
@@ -107,5 +114,49 @@ export async function loginUser(input: userAuthenticationInput) {
     first_name: user.first_name,
     last_name: user.last_name,
     session_token: token,
+  };
+}
+
+export async function getUserProfileCollections(
+  ctx: RequestCtx,
+  profileUserId: number,
+  includeSignedCampaigns: boolean,
+) {
+  const auth = getOptionalAuth(ctx);
+
+  const [repostedCampaigns, createdCampaigns, organizations, signedCampaigns] =
+    await Promise.all([
+      getRepostedCampaignsByUserForViewer({
+        target_user_id: profileUserId,
+        viewer_user_id: auth.userId,
+      }),
+      getCampaignsCreatedByUserForViewer({
+        target_user_id: profileUserId,
+        viewer_user_id: auth.userId,
+      }),
+      getOrganizationsForMemberForViewer({
+        target_user_id: profileUserId,
+        viewer_user_id: auth.userId,
+      }),
+      includeSignedCampaigns
+        ? getSignedCampaignsByUserForViewer({
+            target_user_id: profileUserId,
+            viewer_user_id: auth.userId,
+          })
+        : Promise.resolve([]),
+    ]);
+
+  const [decoratedRepostedCampaigns, decoratedCreatedCampaigns, decoratedSignedCampaigns] =
+    await Promise.all([
+      decorateCampaigns(repostedCampaigns, auth.userId, ctx),
+      decorateCampaigns(createdCampaigns, auth.userId, ctx),
+      decorateCampaigns(signedCampaigns, auth.userId, ctx),
+    ]);
+
+  return {
+    repostedCampaigns: decoratedRepostedCampaigns,
+    signedCampaigns: decoratedSignedCampaigns,
+    createdCampaigns: decoratedCreatedCampaigns,
+    organizations,
   };
 }

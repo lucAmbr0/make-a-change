@@ -155,30 +155,30 @@ COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
 --
--- Table structure for table `favorites`
+-- Table structure for table `reposts`
 --
 
-DROP TABLE IF EXISTS `favorites`;
+DROP TABLE IF EXISTS `reposts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `favorites` (
+CREATE TABLE `reposts` (
   `user_id` int(11) NOT NULL,
   `campaign_id` int(11) NOT NULL,
   PRIMARY KEY (`user_id`,`campaign_id`),
   KEY `campaign_id` (`campaign_id`),
-  CONSTRAINT `fav_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`),
-  CONSTRAINT `fav_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `repost_campaign_fk` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`),
+  CONSTRAINT `repost_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `favorites`
+-- Dumping data for table `reposts`
 --
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `favorites` WRITE;
-/*!40000 ALTER TABLE `favorites` DISABLE KEYS */;
-INSERT INTO `favorites` VALUES
+LOCK TABLES `reposts` WRITE;
+/*!40000 ALTER TABLE `reposts` DISABLE KEYS */;
+INSERT INTO `reposts` VALUES
 (1,1),
 (3,1),
 (5,1),
@@ -192,7 +192,7 @@ INSERT INTO `favorites` VALUES
 (8,3),
 (3,4),
 (7,4);
-/*!40000 ALTER TABLE `favorites` ENABLE KEYS */;
+/*!40000 ALTER TABLE `reposts` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;

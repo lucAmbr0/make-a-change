@@ -2,15 +2,15 @@ import { requireAuthCtx } from "../auth/auth";
 import type { RequestCtx } from "../auth/ctx";
 import { ConflictError, NotFoundError } from "../errors/ApiError";
 import {
-  addFavoriteInput,
-  removeFavoriteInput,
-} from "../schemas/favorites";
+  addRepostInput,
+  removeRepostInput,
+} from "../schemas/reposts";
 import {
-  insertFavorite,
-  deleteFavorite,
-  getUserFavorites,
-  favoriteExists,
-} from "../db/favorites";
+  insertRepost,
+  deleteRepost,
+  getUserReposts,
+  repostExists,
+} from "../db/reposts";
 import { getCampaign, getCampaignUnauthorized } from "../db/campaigns";
 import { isSuperUser } from "../auth/permissions";
 import { parseBody } from "../api/body";
@@ -33,27 +33,27 @@ async function ensureCampaignVisible(
   return campaign;
 }
 
-export async function getUserFavoritesService(ctx: RequestCtx) {
+export async function getUserRepostsService(ctx: RequestCtx) {
   const auth = requireAuthCtx(ctx);
-  return await getUserFavorites({ user_id: auth.userId });
+  return await getUserReposts({ user_id: auth.userId });
 }
 
-export async function addFavoriteService(ctx: RequestCtx) {
+export async function addRepostService(ctx: RequestCtx) {
   const auth = requireAuthCtx(ctx);
-  const input = await parseBody(ctx, addFavoriteInput);
+  const input = await parseBody(ctx, addRepostInput);
 
   await ensureCampaignVisible(ctx, auth.userId, input.campaign_id);
 
-  const alreadyFavorited = await favoriteExists({
+  const alreadyReposted = await repostExists({
     user_id: auth.userId,
     campaign_id: input.campaign_id,
   });
 
-  if (alreadyFavorited) {
-    throw new ConflictError("This campaign is already in your favorites.");
+  if (alreadyReposted) {
+    throw new ConflictError("This campaign is already reposted.");
   }
 
-  await insertFavorite({
+  await insertRepost({
     user_id: auth.userId,
     campaign_id: input.campaign_id,
   });
@@ -61,22 +61,22 @@ export async function addFavoriteService(ctx: RequestCtx) {
   return { user_id: auth.userId, campaign_id: input.campaign_id };
 }
 
-export async function removeFavoriteService(ctx: RequestCtx) {
+export async function removeRepostService(ctx: RequestCtx) {
   const auth = requireAuthCtx(ctx);
-  const input = await parseBody(ctx, removeFavoriteInput);
+  const input = await parseBody(ctx, removeRepostInput);
 
   await ensureCampaignVisible(ctx, auth.userId, input.campaign_id);
 
-  const isFavorited = await favoriteExists({
+  const isReposted = await repostExists({
     user_id: auth.userId,
     campaign_id: input.campaign_id,
   });
 
-  if (!isFavorited) {
-    throw new NotFoundError("This campaign is not in your favorites.");
+  if (!isReposted) {
+    throw new NotFoundError("This campaign is not reposted.");
   }
 
-  await deleteFavorite({
+  await deleteRepost({
     user_id: auth.userId,
     campaign_id: input.campaign_id,
   });

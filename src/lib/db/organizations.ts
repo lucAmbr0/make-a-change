@@ -202,10 +202,10 @@ export async function getOrganizationById(data: { organization_id: number }) {
 export async function deleteOrganization(data: { organization_id: number }) {
   try {
     // Delete dependent records in cascade order
-    // Delete favorites first
+    // Delete reposts first
     await query(
       `
-      DELETE FROM favorites
+      DELETE FROM reposts
       WHERE campaign_id IN (
         SELECT id FROM campaigns
         WHERE organization_id = ?
@@ -337,6 +337,64 @@ export async function getOrganizationsForUser(data: {
       "Failed to retrieve organizations from database",
       {
         operation: "getOrganizationsForUser",
+      },
+    );
+  }
+}
+
+export async function getOrganizationsForMemberForViewer(data: {
+  target_user_id: number;
+  viewer_user_id: number | null;
+  limit?: number;
+}) {
+  try {
+    const rows = await query<organizationResponseSchema>(
+      `
+      SELECT DISTINCT
+        o.*,
+        COALESCE((SELECT COUNT(*) FROM members WHERE organization_id = o.id), 0) AS members_count,
+        COALESCE((SELECT COUNT(*) FROM campaigns WHERE organization_id = o.id), 0) AS campaigns_count,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name
+      FROM organizations AS o
+        INNER JOIN members AS target_m
+          ON o.id = target_m.organization_id
+          AND target_m.user_id = ?
+        LEFT JOIN users AS u ON o.creator_id = u.id
+        LEFT JOIN members AS viewer_m
+          ON o.id = viewer_m.organization_id
+          AND viewer_m.user_id = ?
+      WHERE o.is_public = 1
+        OR o.creator_id = ?
+        OR viewer_m.user_id IS NOT NULL
+      ORDER BY o.created_at DESC
+      LIMIT ?
+      `,
+      [
+        data.target_user_id,
+        data.viewer_user_id || null,
+        data.viewer_user_id || null,
+        data.limit || 15,
+      ],
+    );
+
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getOrganizationsForMemberForViewer:", error);
+      throw new InternalServerError(
+        "Failed to get organizations for member.",
+        {
+          operation: "getOrganizationsForMemberForViewer",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in getOrganizationsForMemberForViewer:", error);
+    throw new InternalServerError(
+      "Failed to retrieve organizations for member from database",
+      {
+        operation: "getOrganizationsForMemberForViewer",
       },
     );
   }
