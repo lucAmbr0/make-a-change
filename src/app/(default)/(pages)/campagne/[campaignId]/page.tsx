@@ -20,6 +20,7 @@ import { authGetOrganization } from "@/lib/services/organizationService";
 import { getServerCtx } from "@/lib/auth/ctx";
 import { NotFoundError } from "@/lib/errors/ApiError";
 import { Metadata } from "next";
+import Link from "next/link";
 import branding from "@/app/components/logic/branding";
 import Banner from "@/app/components/ui/Banner/Banner";
 import { getOptionalAuth } from "@/lib/auth/auth";
@@ -125,6 +126,15 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
         <div className={styles.campaignSummaryTextContainer}>
             <h1>{campaign.title}</h1>
             <h2>{campaign.organization_name}</h2>
+            {campaign.creator_id && (
+                <Link href={`/utente/${campaign.creator_id}`}>
+                    <Paragraph
+                        text={((`Promossa da ${campaign.creator_first_name || ""} ${campaign.creator_last_name || ""}`).trim() || "Anonimo")}
+                        alignment="left"
+                        color="accent-950"
+                    />
+                </Link>
+            )}
             <div className={styles.actionsContainer}>
                 <Button text="Sostieni" icon="list-alt-check" type="filled" />
                 <Button text="Condividi" icon="share" type="outlined" />

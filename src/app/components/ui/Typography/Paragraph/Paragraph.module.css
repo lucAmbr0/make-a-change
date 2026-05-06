@@ -37,6 +37,13 @@
 	color: var(--bw-900);
 }
 
+/* When a Paragraph is wrapped in a link, ensure text and underline use accent-900 */
+a .paragraph {
+	color: var(--accent-900);
+	text-decoration: underline;
+	text-decoration-color: var(--accent-900);
+}
+
 @media (max-width: 768px) {
 	.paragraph {
 		font-size: 16px;
