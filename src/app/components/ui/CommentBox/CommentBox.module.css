@@ -28,6 +28,16 @@
     font-size: 18px;
     color: var(--accent-900);
     margin: 0;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    text-decoration: none;
+    transition: 0.2s ease all;
+}
+
+.authorName:hover {
+    color: var(--accent-950);
+    transform: translateY(-2px);
 }
 
 .commentText {

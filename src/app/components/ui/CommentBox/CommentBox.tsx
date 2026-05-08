@@ -9,6 +9,7 @@ import { apiFetch, ApiClientError } from "@/lib/api/client";
 import { useApiAction } from "@/lib/api/useApiAction";
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function CommentBox({
     authorName = "Anonimo",
@@ -62,7 +63,7 @@ export default function CommentBox({
         <>
             <div className={`${styles.container} ${containerClassName}`}>
                 <div className={styles.headerRow}>
-                    <h4 className={styles.authorName}>{authorName || "Anonimo"}</h4>
+                    <Link className={styles.authorName} href={`/utente/${authorId}`}><Icon icon={"material-symbols:account-circle-outline"} />{authorName || "Anonimo"}</Link>
                     {canDelete && (
                         <button
                             className={styles.deleteButton}

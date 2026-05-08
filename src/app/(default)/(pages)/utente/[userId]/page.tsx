@@ -122,19 +122,19 @@ export default async function Page({ params }: { params: Promise<{ userId: strin
             {isLoggedIn && isOwnProfile && signedCampaigns.length > 0 && (
                 <div className={styles.carouselContainer}>
                     <Title text='Campagne firmate' hierarchy={2} alignment='left' />
+                    {isOwnProfile && (
+                        <div className={styles.minorText}>
+                            <Paragraph
+                                text="Solo tu puoi vedere quali campagne hai firmato."
+                                color="accent-900"
+                                alignment="left"
+                            />
+                        </div>
+                    )}
                     <Carousel direction="horizontal" items={signedCardItems} />
                 </div>
             )}
 
-            {isOwnProfile && (
-                <div className={styles.minorText}>
-                    <Paragraph
-                        text="Solo tu puoi vedere quali campagne hai firmato. Le campagne che ricondividi sono visibili agli altri utenti"
-                        color="accent-900"
-                        alignment="left"
-                    />
-                </div>
-            )}
 
             {repostedCampaigns.length > 0 && (
                 <div className={styles.carouselContainer}>
@@ -157,6 +157,7 @@ export default async function Page({ params }: { params: Promise<{ userId: strin
                 </div>
             )}
 
+            <Paragraph color='accent-900' text={"Per tutelare la privacy degli utenti, le campagne firmate non sono visibili dai visitatori del profilo, ma il proprietario può ricondividere sul suo profilo le campagne che desidera sostenere pubblicamente."} />
 
         </div>
     </>;
