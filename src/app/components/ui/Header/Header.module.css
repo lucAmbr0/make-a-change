@@ -4,7 +4,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 100px;
+    padding: 10px clamp(16px, 4vw, 80px);
     position: relative;
 }
 
@@ -14,23 +14,32 @@
     justify-content: space-between;
     width: 100%;
     min-width: 0;
-    gap: 12px;
+    gap: 16px;
 }
 
 .leftSlot {
     grid-area: left;
     justify-self: start;
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 .centerSlot {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.centerSlot > * {
+    pointer-events: auto;
 }
 
 .rightSlot {
     display: flex;
     justify-content: flex-end;
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 .headerTitle {
@@ -40,11 +49,13 @@
     margin: 0;
     font-family: var(--font-playfair);
     font-weight: 800;
-    font-size: 28px;
+    font-size: clamp(1.1rem, 2vw, 1.75rem);
     color: var(--accent-50);
     cursor: pointer;
     text-decoration: none;
     transition: all 0.3s ease;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .headerTitle:hover {
@@ -53,18 +64,23 @@
 }
 
 .logo {
-    height: 28px;
+    height: 1.5em;
     margin: auto 8px auto 0;
     aspect-ratio: 1/1;
     filter: grayscale(1) brightness(100);
+    flex-shrink: 0;
 }
 
 .titleText {
-    font-size: 28px;
+    font-size: inherit;
     margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
     .header {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -72,8 +88,8 @@
             "top top"
             "center center";
         column-gap: 8px;
-        row-gap: 4px;
-        padding: 6px 10px 8px;
+        row-gap: 6px;
+        padding: 8px 14px 10px;
         position: sticky;
         top: 0;
         z-index: 20;
@@ -91,6 +107,7 @@
         grid-area: center;
         width: 100%;
         min-width: 0;
+        pointer-events: auto;
     }
 
     .rightSlot {
@@ -101,28 +118,22 @@
     }
 
     .headerTitle {
-        font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+        font-size: clamp(1.05rem, 4.4vw, 1.4rem);
         text-align: left;
         white-space: nowrap;
         min-width: 0;
         overflow: hidden;
     }
 
-    .titleText {
-        font-size: inherit;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
     .logo {
-        height: 22px;
+        height: 1.4em;
         margin: auto 6px auto 0;
     }
 }
 
 @media (max-width: 560px) {
     .header {
-        padding: 5px 8px 7px;
+        padding: 5px 10px 7px;
         transition: padding 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
     }
 
@@ -137,7 +148,7 @@
     }
 
     .logo {
-        height: 20px;
+        height: 1.3em;
         margin: auto 5px auto 0;
     }
 

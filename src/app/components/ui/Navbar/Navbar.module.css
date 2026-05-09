@@ -29,9 +29,9 @@
     opacity: 1;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
     .navbar {
-        gap: 2px;
+        gap: 4px;
         flex-wrap: nowrap;
         justify-content: flex-start;
         overflow-x: auto;
