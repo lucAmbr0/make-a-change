@@ -3,6 +3,7 @@
     width: fit-content;
     max-width: 100%;
     min-width: 0;
+    --profile-chip-width: 280px;
 }
 
 .profileChipContainer {
@@ -14,9 +15,10 @@
     align-items: center;
     padding: 12px 16px;
     gap: 12px;
-    border: none;
-    width: 100%;
-    max-width: 100%;
+    border: solid 1px transparent;
+    border-bottom: 0;
+    width: var(--profile-chip-width);
+    max-width: calc(100vw - 20px);
     min-width: 0;
     justify-content: flex-start;
     cursor: pointer;
@@ -27,6 +29,8 @@
 
 .profileChipContainer.open {
     border-radius: 21px 21px 0 0;
+    border: solid 1px var(--accent-300);
+    border-bottom: 0;
 }
 
 .profileIcon {
@@ -53,12 +57,14 @@
     top: 100%;
     right: 0;
     background-color: var(--accent-100);
+    border: solid 1px var(--accent-300);
+    border-top: 0;
     border-radius: 0 0 21px 21px;
     display: flex;
     flex-direction: column;
     gap: 0;
-    width: 100%;
-    min-width: 200px;
+    width: var(--profile-chip-width);
+    min-width: var(--profile-chip-width);
     max-width: calc(100vw - 20px);
     animation: clipDown 0.2s ease forwards;
     z-index: 30;
@@ -263,6 +269,10 @@
 }
 
 @media (max-width: 1024px) {
+    .profileChipWrapper {
+        --profile-chip-width: 240px;
+    }
+
     .profileChipContainer {
         padding: 10px 14px;
         gap: 10px;
@@ -275,6 +285,10 @@
 }
 
 @media (max-width: 560px) {
+    .profileChipWrapper {
+        --profile-chip-width: 100%;
+    }
+
     .profileChipContainer {
         padding: 9px;
         gap: 0;

@@ -25,6 +25,100 @@
     opacity: 0.8;
 }
 
+.rangeInput {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 28px;
+    padding: 0 6px;
+    background: transparent;
+}
+
+.rangeInput::-webkit-slider-runnable-track {
+    height: 8px;
+    background: linear-gradient(90deg, var(--accent-800) 0%, var(--accent-300) 0%);
+    border-radius: 8px;
+    border: none;
+}
+.rangeInput::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -6px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    border: 2px solid var(--accent-800);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    cursor: pointer;
+}
+
+.rangeInput::-moz-range-track {
+    height: 8px;
+    background: linear-gradient(90deg, var(--accent-800) 0%, var(--accent-300) 0%);
+    border-radius: 8px;
+}
+.rangeInput::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    border: 2px solid var(--accent-800);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    cursor: pointer;
+}
+
+.rangeInput[data-filled='true']::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, var(--accent-800) var(--_pct, 50%), var(--accent-300) var(--_pct, 50%));
+}
+
+
+.toggleLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--accent-950);
+    user-select: none;
+}
+
+.toggleCheckbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: solid 2px var(--accent-700);
+    background-color: var(--accent-50);
+    cursor: pointer;
+    display: inline-grid;
+    place-content: center;
+    transition: 0.15s ease all;
+    flex-shrink: 0;
+}
+.toggleCheckbox:checked {
+    background-color: var(--accent-800);
+    border-color: var(--accent-800);
+}
+.toggleCheckbox:checked::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background-color: var(--accent-50);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+.toggleCheckbox:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggleError {
+    color: var(--accent-500);
+    font-size: 12px;
+    margin-left: 8px;
+    font-weight: 400;
+}
+
 @media (max-width: 768px) {
     .container {
         width: 100%;

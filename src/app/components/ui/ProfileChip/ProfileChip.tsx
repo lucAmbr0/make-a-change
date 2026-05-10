@@ -103,15 +103,15 @@ export default function Profile() {
         <>
             <Link href={`/utente/${user?.id}`} className={styles.menuItem} onClick={closeMenu}>
                 <Icon icon="material-symbols:person-outline" className={styles.menuIcon} fontSize={"20px"} />
-                <span>My profile</span>
+                <span>Profilo</span>
             </Link>
-            <Link href="/campagne" className={styles.menuItem} onClick={closeMenu}>
+            <Link href="/campagne/crea" className={styles.menuItem} onClick={closeMenu}>
                 <Icon icon="material-symbols:campaign-outline" className={styles.menuIcon} fontSize={"20px"} />
-                <span>New campaign</span>
+                <span>Nuova campagna</span>
             </Link>
             <Link href="/organizzazioni" className={styles.menuItem} onClick={closeMenu}>
                 <Icon icon="material-symbols:groups-outline" className={styles.menuIcon} fontSize={"20px"} />
-                <span>Join organization</span>
+                <span>Entra in un'organizzazione</span>
             </Link>
             <button className={styles.menuItem} onClick={handleLogout} type="button">
                 <Icon icon="material-symbols:logout" className={styles.menuIcon} fontSize={"20px"} />

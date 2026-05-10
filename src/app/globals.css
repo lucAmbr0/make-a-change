@@ -35,8 +35,9 @@
 /* ===== CSS VARIABLES ===== */
 
 :root {
-  --accent-50: #fdf3f3;
-  --accent-100: #fbe5e5;
+  /* Black Cherry */
+  --accent-50: #f7f3f3;
+  --accent-100: #faebeb;
   --accent-200: #f9cfcf;
   --accent-300: #f4adad;
   --accent-400: #ec7d7d;
@@ -47,6 +48,20 @@
   --accent-900: #762626;
   --accent-950: #400f0f;
 
+  /* San Marino */
+  /* --accent-50: #f3f7fb;
+  --accent-100: #e3ebf6;
+  --accent-200: #ceddef;
+  --accent-300: #acc7e4;
+  --accent-400: #84aad6;
+  --accent-500: #678eca;
+  --accent-600: #5476bc;
+  --accent-700: #4d69b3;
+  --accent-800: #40538d;
+  --accent-900: #384770;
+  --accent-950: #252d46; */
+
+  /* Black and White */
   --bw-50: #fafafa;
   --bw-100: #f4f4f5;
   --bw-200: #e3e3e8;
