@@ -101,7 +101,7 @@ export default function Profile() {
 
     const menuItems = (
         <>
-            <Link href="/utente" className={styles.menuItem} onClick={closeMenu}>
+            <Link href={`/utente/${user?.id}`} className={styles.menuItem} onClick={closeMenu}>
                 <Icon icon="material-symbols:person-outline" className={styles.menuIcon} fontSize={"20px"} />
                 <span>My profile</span>
             </Link>

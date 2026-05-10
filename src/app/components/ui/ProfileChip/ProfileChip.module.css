@@ -7,7 +7,7 @@
 
 .profileChipContainer {
     background-color: var(--accent-100);
-    border-radius: 50px;
+    border-radius: 21px;
     position: relative;
     z-index: 40;
     display: flex;
@@ -66,11 +66,17 @@
 }
 
 @keyframes clipDown {
-    from {
+    0% {
         clip-path: inset(0 0 100% 0);
         opacity: 0;
     }
-    to {
+    
+    30% {
+        clip-path: inset(0 0 100% 0);
+        opacity: 0;
+    }
+
+    100% {
         clip-path: inset(0 0 0 0);
         opacity: 1;
     }
@@ -92,7 +98,9 @@
     text-align: left;
     white-space: nowrap;
     width: 100%;
-    svg,span {
+
+    svg,
+    span {
         transition: 0.2s ease all;
     }
 }
@@ -124,7 +132,7 @@
     flex-shrink: 0;
 }
 
-/* ===== Mobile sheet (rendered via portal) ===== */
+/* Mobile sheet */
 
 .mobileBackdrop {
     position: fixed;
@@ -224,8 +232,13 @@
 }
 
 @keyframes backdropFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes sheetSlideUp {
@@ -233,6 +246,7 @@
         transform: translateY(100%);
         opacity: 0.4;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -240,6 +254,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .mobileBackdrop,
     .mobileSheet,
     .profileMenu {
