@@ -3,7 +3,7 @@
 [![wakatime](https://wakatime.com/badge/github/lucAmbr0/make-a-change.svg)](https://wakatime.com/badge/github/lucAmbr0/make-a-change)
 ![Status](https://img.shields.io/badge/status-in%20development-orange)
 ![License](https://img.shields.io/badge/license-GNU%20GPL%20v3.0-yellow)
-![Lines of Code](https://img.shields.io/badge/lines-14.3k-blue)
+![Lines of Code](https://img.shields.io/badge/lines-15.3k-blue)
 <!-- cloc src scripts -->
 ![GitHub repo size](https://img.shields.io/github/repo-size/lucAmbr0/make-a-change)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/lucAmbr0/make-a-change)
@@ -224,31 +224,33 @@ Database
 <!-- cd src/app/api && ls -TD -->
 
 ```
- .
-├── /auth
-│   ├── /login
-│   ├── /logout
-│   ├── /me
-│   └── /signup
-├── /campaign
-│   ├── /[id]
-│   │   ├── /access
-│   │   ├── /can-edit
-│   │   ├── /comments
-│   │   │   └── /[commentId]
-│   │   │       ├── /can-delete
-│   │   │       └── /moderation
-│   │   └── /signature
-│   └── /reposts
-├── /notification
-│   └── /create
-└── /organization
-    ├── /[id]
-    │   ├── /approval_requests
-    │   ├── /invite_codes
-    │   └── /member
-    │       └── /me
-    └── /join
+.
+├── auth
+│   ├── devlogin
+│   ├── login
+│   ├── logout
+│   ├── me
+│   └── signup
+├── campaign
+│   ├── [id]
+│   │   ├── access
+│   │   ├── can-edit
+│   │   ├── comments
+│   │   │   └── [commentId]
+│   │   │       ├── can-delete
+│   │   │       └── moderation
+│   │   └── signature
+│   └── reposts
+├── notification
+│   └── create
+└── organization
+    ├── [id]
+    │   ├── approval_requests
+    │   ├── invite_codes
+    │   └── member
+    │       └── me
+    ├── join
+    └── lookup
 ```
 
 ---

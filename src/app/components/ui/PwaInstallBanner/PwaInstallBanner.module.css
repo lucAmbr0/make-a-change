@@ -1,0 +1,76 @@
+.banner {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(480px, calc(100vw - 32px));
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--accent-950);
+    color: var(--accent-50);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+    z-index: 2000;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.icon {
+    flex-shrink: 0;
+    color: var(--accent-300);
+}
+
+.text {
+    flex: 1;
+    margin: 0;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.install {
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    background: var(--accent-500);
+    color: #fff;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.install:hover {
+    background: var(--accent-400);
+}
+
+.dismiss {
+    border: none;
+    background: transparent;
+    color: var(--accent-400);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.dismiss:hover {
+    color: var(--accent-50);
+}
