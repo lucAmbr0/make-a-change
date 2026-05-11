@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import styles from "./CoverImageEditor.module.css";
 import { apiFetch } from "@/lib/api/client";
 import { useApiAction } from "@/lib/api/useApiAction";
+import ImagePreviewModal from "@/app/components/ui/Modal/ImagePreviewModal/ImagePreviewModal";
 
 interface CoverImageEditorProps {
     campaignId: number;
@@ -25,6 +26,9 @@ export default function CoverImageEditor({
     const router = useRouter();
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState(initialValue ?? "");
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const probeRef = useRef<HTMLImageElement | null>(null);
 
     const save = useApiAction(
         async (value: string | null) =>
@@ -40,6 +44,33 @@ export default function CoverImageEditor({
         },
     );
 
+    function cancelPending() {
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+        if (probeRef.current) { probeRef.current.onload = null; probeRef.current.onerror = null; probeRef.current = null; }
+    }
+
+    function schedulePreview(url: string) {
+        cancelPending();
+
+        const img = new window.Image();
+        img.onload = () => { cancelPending(); setPreviewOpen(true); };
+        img.onerror = () => { probeRef.current = null; };
+        img.src = url;
+        probeRef.current = img;
+
+        timerRef.current = setTimeout(() => { timerRef.current = null; setPreviewOpen(true); }, 1500);
+    }
+
+    function handleUrlChange(value: string) {
+        setDraft(value);
+        const url = value.trim();
+        if (url) {
+            schedulePreview(url);
+        } else {
+            cancelPending();
+        }
+    }
+
     function startEditing() {
         setDraft(initialValue ?? "");
         save.reset();
@@ -52,11 +83,30 @@ export default function CoverImageEditor({
     }
 
     function cancel() {
+        cancelPending();
         setEditing(false);
         save.reset();
     }
 
+    async function handlePreviewSave() {
+        setPreviewOpen(false);
+        await commit();
+    }
+
+    function handlePreviewCancel() {
+        cancelPending();
+        setPreviewOpen(false);
+        setDraft("");
+    }
+
     return (
+        <>
+        <ImagePreviewModal
+            open={previewOpen}
+            src={draft.trim()}
+            onSave={handlePreviewSave}
+            onCancel={handlePreviewCancel}
+        />
         <div className={styles.wrapper}>
             <img className={imageClassName} src={src} alt={alt} />
             {!editing && (
@@ -79,7 +129,7 @@ export default function CoverImageEditor({
                         className={styles.editorInput}
                         type="url"
                         value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
+                        onChange={(e) => handleUrlChange(e.target.value)}
                         placeholder="https://..."
                         autoFocus
                     />
@@ -107,5 +157,6 @@ export default function CoverImageEditor({
                 </div>
             )}
         </div>
+        </>
     );
 }

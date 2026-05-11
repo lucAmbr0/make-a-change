@@ -63,9 +63,9 @@ export default function DeleteCampaignButton({
                 open={open}
                 onClose={close}
                 overlayType="blurred"
-                containerBgColor="white"
+                containerBgColor="var(--accent-950)"
                 borderWidth="1px"
-                borderColor="var(--accent-300)"
+                borderColor="var(--accent-800)"
                 boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
             >
                 <div className={styles.modalContent}>

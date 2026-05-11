@@ -38,6 +38,7 @@
     text-align: center;
 }
 
+
 @media (max-width: 768px) {
     .pageContainer {
         margin: 0 16px;

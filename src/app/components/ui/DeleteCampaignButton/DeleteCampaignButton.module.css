@@ -28,21 +28,19 @@
     flex-direction: column;
     gap: 12px;
     padding: 24px;
-    min-width: 360px;
-    max-width: 480px;
 }
 
 .modalTitle {
     margin: 0;
     font-family: var(--font-playfair);
     font-size: 22px;
-    color: var(--accent-950);
+    color: var(--accent-100);
 }
 
 .modalDescription {
     margin: 0;
     font-family: var(--font-inter);
-    color: var(--accent-900);
+    color: var(--accent-50);
     font-size: 14px;
 }
 

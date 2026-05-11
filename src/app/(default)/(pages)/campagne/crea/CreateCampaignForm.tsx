@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import InputField from "@/app/components/ui/InputField/InputField";
 import Paragraph from "@/app/components/ui/Typography/Paragraph/Paragraph";
 import Button from "@/app/components/ui/Button/Button";
+import ImagePreviewModal from "@/app/components/ui/Modal/ImagePreviewModal/ImagePreviewModal";
 
 type OrgOption = { id: number; name: string };
 
@@ -23,8 +24,8 @@ export default function CreateCampaignForm({ organizations }: { organizations: O
         title: "",
         cover_path: "",
         description: "",
-        is_public: false,
-        comments_active: false,
+        is_public: true,
+        comments_active: true,
         comments_require_approval: false,
         signature_goal: "0",
         organization_id: "",
@@ -32,6 +33,29 @@ export default function CreateCampaignForm({ organizations }: { organizations: O
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [apiError, setApiError] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const probeRef = useRef<HTMLImageElement | null>(null);
+
+    function cancelPending() {
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+        if (probeRef.current) { probeRef.current.onload = null; probeRef.current.onerror = null; probeRef.current = null; }
+    }
+
+    function handleCoverPathChange(value: string) {
+        setField("cover_path", value);
+        cancelPending();
+        const url = value.trim();
+        if (!url) return;
+
+        const img = new window.Image();
+        img.onload = () => { cancelPending(); setPreviewOpen(true); };
+        img.onerror = () => { if (probeRef.current === img) probeRef.current = null; };
+        img.src = url;
+        probeRef.current = img;
+
+        timerRef.current = setTimeout(() => { timerRef.current = null; setPreviewOpen(true); }, 1500);
+    }
 
     function setField<K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) {
         setFormData((prev) => ({ ...prev, [key]: value }));
@@ -141,6 +165,13 @@ export default function CreateCampaignForm({ organizations }: { organizations: O
     ];
 
     return (
+        <>
+        <ImagePreviewModal
+            open={previewOpen}
+            src={formData.cover_path.trim()}
+            onSave={() => setPreviewOpen(false)}
+            onCancel={() => { cancelPending(); setField("cover_path", ""); setPreviewOpen(false); }}
+        />
         <form onSubmit={handleSubmit} noValidate>
             <div className={styles.formSection}>
                 <div className={styles.fullWidth}>
@@ -161,10 +192,10 @@ export default function CreateCampaignForm({ organizations }: { organizations: O
                         label="URL Immagine campagna (660x400 px)"
                         title="URL Immagine campagna (600x400 px)"
                         type="text"
-                        placeholder="Inserisci l'URL dell'immagine"
+                        placeholder="Inserisci l'URL dell'immagine (https://esempio.it/immagine.jpg)"
                         minLength={2}
                         maxLength={COVER_MAX}
-                        onChange={(e) => setField("cover_path", e.target.value)}
+                        onChange={(e) => handleCoverPathChange(e.target.value)}
                     />
                     {errors.cover_path && <p className={styles.error}>{errors.cover_path}</p>}
                 </div>
@@ -255,5 +286,6 @@ export default function CreateCampaignForm({ organizations }: { organizations: O
                 <Button text={isLoading ? "Creazione..." : "Crea campagna"} />
             </div>
         </form>
+        </>
     );
 }
