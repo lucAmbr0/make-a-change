@@ -175,6 +175,48 @@ export async function getMembersCount(data: { organization_id: number }) {
   }
 }
 
+export async function updateMemberModerator(data: {
+  user_id: number;
+  organization_id: number;
+  is_moderator: boolean;
+}) {
+  try {
+    const rows = await query<memberRowSchema>(
+      `
+      UPDATE members
+      SET is_moderator = ?
+      WHERE user_id = ? AND organization_id = ?
+      RETURNING *
+      `,
+      [data.is_moderator ? 1 : 0, data.user_id, data.organization_id],
+    );
+
+    if (!rows || rows.length === 0) {
+      throw new InternalServerError(
+        "Member update failed: no rows returned",
+        { operation: "updateMemberModerator" },
+      );
+    }
+
+    return rows[0];
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in updateMemberModerator:", error);
+      throw new InternalServerError(
+        "Failed to update member. Please ensure all provided member data are valid.",
+        {
+          operation: "updateMemberModerator",
+          dbCode: error.code,
+        },
+      );
+    }
+    console.error("Unexpected error in updateMemberModerator:", error);
+    throw new InternalServerError("Failed to update member in database", {
+      operation: "updateMemberModerator",
+    });
+  }
+}
+
 export async function deleteMember(data: {
   user_id: number;
   organization_id: number;

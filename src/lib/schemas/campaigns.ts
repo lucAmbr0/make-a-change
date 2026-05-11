@@ -69,6 +69,13 @@ export const createCampaignInput = zod.object({
   cover_path: zod
     .string({ message: "Cover path must be a string" })
     .max(2048, "Cover path cannot exceed 2048 characters")
+    .refine(
+      (v) => v === "" || /^(https?:\/\/|\/|data:)/.test(v),
+      {
+        message:
+          "Cover path must be an absolute URL (http(s)://...) or start with /",
+      },
+    )
     .nullable()
     .optional(),
   signature_goal: zod
@@ -95,6 +102,13 @@ export const updateCampaignInput = zod
     cover_path: zod
       .string()
       .max(2048, "Cover path cannot exceed 2048 characters")
+      .refine(
+        (v) => v === "" || /^(https?:\/\/|\/|data:)/.test(v),
+        {
+          message:
+            "Cover path must be an absolute URL (http(s)://...) or start with /",
+        },
+      )
       .nullable(),
     signature_goal: zod
       .number()

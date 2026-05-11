@@ -2,6 +2,7 @@ import {
   addMember,
   authGetMembersCount,
   authDeleteMember,
+  authUpdateMemberModerator,
 } from "@/lib/services/memberService";
 import { route } from "@/lib/api/handler";
 import { parseIntParam } from "@/lib/api/params";
@@ -17,6 +18,11 @@ export const GET = route<Params>(async (ctx, { id }) => {
 export const POST = route<Params>(async (ctx, { id }) => {
   const organizationId = parseIntParam(id, "organization id");
   return await addMember(ctx, organizationId);
+});
+
+export const PATCH = route<Params>(async (ctx, { id }) => {
+  const organizationId = parseIntParam(id, "organization id");
+  return await authUpdateMemberModerator(ctx, organizationId);
 });
 
 export const DELETE = route<Params>(async (ctx, { id }) => {

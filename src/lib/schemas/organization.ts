@@ -73,6 +73,13 @@ export const createOrganizationInput = zod.object({
   cover_path: zod
     .string({ message: "Cover path must be a string" })
     .max(2048, "Cover path cannot exceed 2048 characters")
+    .refine(
+      (v) => v === "" || /^(https?:\/\/|\/|data:)/.test(v),
+      {
+        message:
+          "Cover path must be an absolute URL (http(s)://...) or start with /",
+      },
+    )
     .nullable()
     .optional(),
   is_public: zod.boolean({ message: "Visibility flag must be true or false" }),

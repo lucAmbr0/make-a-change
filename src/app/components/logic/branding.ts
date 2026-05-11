@@ -2,6 +2,7 @@ const branding = {
   appName: "Make a Change",
   appDescription: "Prendi iniziativa e cambia le cose",
   logo: "/logo2.png",
+  campaignPlaceholderImage: "/campaign_placeholder_image.webp",
   repoName: "make-a-change",
   repoLink: "https://github.com/lucAmbr0/make-a-change",
   author: "lucAmbr0",

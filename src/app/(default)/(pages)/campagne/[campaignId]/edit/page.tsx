@@ -1,6 +1,6 @@
 import viewStyles from "../page.module.css";
 import styles from "./page.module.css";
-import placeholders from "@/app/components/logic/placeholders";
+import { resolveCoverSrc } from "@/app/components/logic/coverImage";
 import OrganizationCard from "@/app/components/ui/OrganizationCard/OrganizationCard";
 import ProgressBar from "@/app/components/ui/ProgressBar/ProgressBar";
 import Title from "@/app/components/ui/Typography/Title/Title";
@@ -130,7 +130,7 @@ export default async function EditPage({
                     <CoverImageEditor
                         campaignId={parsedCampaignId}
                         initialValue={campaign.cover_path ?? null}
-                        src={campaign.cover_path || placeholders.campaignPlaceholderImage}
+                        src={resolveCoverSrc(campaign.cover_path)}
                         imageClassName={viewStyles.campaignSummaryImage}
                     />
                 </div>

@@ -7,22 +7,25 @@ import {
   getMembersList,
   insertMember,
   searchMemberOfOrganization,
+  updateMemberModerator,
 } from "../db/members";
 import {
-  createMemberInput,
   deleteMemberInput,
   memberResponseSchema,
   memberRowSchema,
+  updateMemberModeratorInput,
 } from "../schemas/members";
 import { getOrganization } from "../db/organizations";
 import { organizationResponseSchema } from "../schemas/organization";
-import { requireOrganizationModeratorOrOwner } from "../auth/permissions";
+import {
+  requireOrganizationModeratorOrOwner,
+  requireOrganizationOwner,
+} from "../auth/permissions";
 import { parseBody } from "../api/body";
 
 export async function addMemberForUser(
   userId: number,
   organizationId: number,
-  input: createMemberInput = {},
 ) {
   if (
     await searchMemberOfOrganization({
@@ -38,8 +41,8 @@ export async function addMemberForUser(
   const member: memberRowSchema = await insertMember({
     organization_id: organizationId,
     user_id: userId,
-    is_moderator: input.is_moderator,
-    is_owner: input.is_owner,
+    is_moderator: false,
+    is_owner: false,
   });
 
   return member;
@@ -47,8 +50,42 @@ export async function addMemberForUser(
 
 export async function addMember(ctx: RequestCtx, organizationId: number) {
   const auth = requireAuthCtx(ctx);
-  const input = await parseBody(ctx, createMemberInput);
-  return await addMemberForUser(auth.userId, organizationId, input);
+  return await addMemberForUser(auth.userId, organizationId);
+}
+
+export async function authUpdateMemberModerator(
+  ctx: RequestCtx,
+  organizationId: number,
+) {
+  const auth = requireAuthCtx(ctx);
+  const input: updateMemberModeratorInput = await parseBody(
+    ctx,
+    updateMemberModeratorInput,
+  );
+
+  await requireOrganizationOwner(auth.userId, organizationId, ctx);
+
+  const target = await searchMemberOfOrganization({
+    organization_id: organizationId,
+    user_id: input.user_id,
+  });
+
+  if (!target) {
+    throw new NotFoundError("Member not found in this organization.");
+  }
+
+  if (target.is_owner) {
+    throw new ValidationError(
+      "Cannot change the moderator status of the organization owner.",
+      { user_id: input.user_id, organization_id: organizationId },
+    );
+  }
+
+  return await updateMemberModerator({
+    user_id: input.user_id,
+    organization_id: organizationId,
+    is_moderator: input.is_moderator,
+  });
 }
 
 export async function authDeleteMember(

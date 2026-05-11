@@ -1,5 +1,5 @@
 import { campaignResponseSchema } from '@/lib/schemas/campaigns';
-import placeholders from '../../logic/placeholders';
+import { resolveCoverSrc } from '../../logic/coverImage';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import styles from './CampaignCard.module.css';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ interface CampaignCardProps {
 }
 
 export default function CampaignCard({ campaign, href }: CampaignCardProps) {
-    const imageSrc = campaign && campaign.cover_path && campaign.cover_path.trim() ? campaign.cover_path : placeholders.campaignPlaceholderImage;
+    const imageSrc = resolveCoverSrc(campaign?.cover_path);
 
     const cardContent = (
         <>

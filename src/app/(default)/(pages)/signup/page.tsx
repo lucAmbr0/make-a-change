@@ -71,7 +71,7 @@ export default function Page() {
         }
     }, [showSuccessModal, router]);
 
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const newPassword = e.target.value;
         setFormData(prev => ({ ...prev, password: newPassword }));
         setPasswordStrength(calculatePasswordStrength(newPassword));

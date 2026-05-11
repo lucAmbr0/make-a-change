@@ -1,6 +1,6 @@
 import styles from "./page.module.css";
 import AddCommentBox from "@/app/components/ui/AddCommentBox/AddCommentBox";
-import placeholders from "@/app/components/logic/placeholders";
+import { resolveCoverSrc } from "@/app/components/logic/coverImage";
 import Button from "@/app/components/ui/Button/Button";
 import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
 import Carousel from "@/app/components/ui/Carousel/Carousel";
@@ -121,7 +121,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
     )}
     <div className={styles.campaignSummaryContainer}>
         <div className={styles.campaignSummaryImageContainer}>
-            <img className={styles.campaignSummaryImage} src={campaign.cover_path || placeholders.campaignPlaceholderImage} alt={"Immagine campagna"} />
+            <img className={styles.campaignSummaryImage} src={resolveCoverSrc(campaign.cover_path)} alt={"Immagine campagna"} />
         </div>
         <div className={styles.campaignSummaryTextContainer}>
             <h1>{campaign.title}</h1>

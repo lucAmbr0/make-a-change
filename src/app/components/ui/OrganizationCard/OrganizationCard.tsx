@@ -1,10 +1,10 @@
 import { organizationResponseSchema } from '@/lib/schemas/organization';
 import styles from './OrganizationCard.module.css';
 import { Icon } from '@iconify/react';
-import placeholders from '../../logic/placeholders';
+import { resolveCoverSrc } from '../../logic/coverImage';
 
 export default function OrganizationCard({ organization: organization }: { organization: organizationResponseSchema }) {
-    const imageSrc = organization && organization.cover_path && organization.cover_path.trim() ? organization.cover_path : placeholders.campaignPlaceholderImage;
+    const imageSrc = resolveCoverSrc(organization?.cover_path);
 
     return (
         <div className={styles.card}>
