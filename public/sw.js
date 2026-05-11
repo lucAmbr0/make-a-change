@@ -1,20 +1,8 @@
-const CACHE = 'mac-v1';
+const CACHE = 'mac-static-v1';
 
-// Static assets safe to cache indefinitely (Next.js hashes the filenames)
-const STATIC_RE = /^\/_next\/static\//;
-// Other cacheable assets
-const ASSET_RE = /\.(png|jpg|jpeg|webp|gif|svg|ico|woff2?|ttf|otf)(\?.*)?$/;
-
-self.addEventListener('install', (event) => {
-  // Cache the app shell immediately; don't wait for old SW to go away
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(['/', '/offline']))
-  );
-  self.skipWaiting();
-});
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {
-  // Purge caches from previous versions
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
@@ -27,17 +15,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Only handle same-origin GET requests; skip API calls
-  if (
-    request.method !== 'GET' ||
-    url.origin !== self.location.origin ||
-    url.pathname.startsWith('/api/')
-  ) {
-    return;
-  }
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  // Next.js hashed static bundles → cache-first (safe forever)
-  if (STATIC_RE.test(url.pathname)) {
+  // /_next/static/ files are content-addressed (hashed filenames) → cache-first forever
+  if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(request).then(
         (cached) => cached ?? fetchAndCache(request)
@@ -46,8 +27,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Images & fonts → cache-first, update in background (stale-while-revalidate)
-  if (ASSET_RE.test(url.pathname)) {
+  // Public images and fonts → stale-while-revalidate
+  if (/\.(png|jpg|jpeg|webp|gif|svg|ico|woff2?|ttf|otf)(\?.*)?$/.test(url.pathname)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const fresh = fetchAndCache(request);
@@ -57,18 +38,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation & everything else → network-first, fall back to cache then /offline
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(request, clone));
-          return res;
-        })
-        .catch(() => caches.match(request).then((c) => c ?? caches.match('/')))
-    );
-  }
+  // HTML pages and API → always network, never cache
 });
 
 async function fetchAndCache(request) {
