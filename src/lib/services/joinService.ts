@@ -5,7 +5,7 @@ import {
   getInviteCodeByCode,
 } from "../db/invite_codes";
 import {
-  getApprovalRequestForUser,
+  getApprovalRequest,
   insertApprovalRequest,
 } from "../db/approval_requests";
 import { getOrganizationById } from "../db/organizations";
@@ -89,19 +89,20 @@ export async function joinOrganization(
 
   const existingMember = await getMember(auth.userId, organization.id);
   if (existingMember) {
-    throw new ValidationError("User is already a member of this organization", {
+    throw new ValidationError("User is already a member of this organization.", {
       error: "Duplicate member",
     });
   }
 
   if (organization.requires_approval) {
-    const pendingRequest = await getApprovalRequestForUser({
+    const pendingRequest = await getApprovalRequest({
       user_id: auth.userId,
+      organization_id: organization.id,
     });
 
     if (pendingRequest) {
-      throw new ValidationError("User already has a pending approval request", {
-        organization_id: pendingRequest.organization_id,
+      throw new ValidationError("User already has a pending approval request for this organization.", {
+        organization_id: organization.id,
       });
     }
 

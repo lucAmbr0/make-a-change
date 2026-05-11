@@ -7,12 +7,14 @@ import styles from './ProfileChip.module.css';
 import { Icon } from "@iconify/react";
 import { useUser } from '@/app/components/logic/UserProvider';
 import LoginModal from "@/app/components/ui/LoginModal/LoginModal";
+import JoinOrganizationModal from "@/app/components/ui/Modal/JoinOrganizationModal/JoinOrganizationModal";
 
 const MOBILE_QUERY = '(max-width: 1024px)';
 
 export default function Profile() {
     const { user, isLoading } = useUser();
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isJoinOrgOpen, setIsJoinOrgOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [portalElement, setPortalElement] = useState<Element | null>(null);
@@ -109,10 +111,14 @@ export default function Profile() {
                 <Icon icon="material-symbols:campaign-outline" className={styles.menuIcon} fontSize={"20px"} />
                 <span>Nuova campagna</span>
             </Link>
-            <Link href="/organizzazioni" className={styles.menuItem} onClick={closeMenu}>
+            <button
+                type="button"
+                className={styles.menuItem}
+                onClick={() => { closeMenu(); setIsJoinOrgOpen(true); }}
+            >
                 <Icon icon="material-symbols:groups-outline" className={styles.menuIcon} fontSize={"20px"} />
-                <span>Entra in un'organizzazione</span>
-            </Link>
+                <span>Entra in un&apos;organizzazione</span>
+            </button>
             <button className={styles.menuItem} onClick={handleLogout} type="button">
                 <Icon icon="material-symbols:logout" className={styles.menuIcon} fontSize={"20px"} />
                 <span>Logout</span>
@@ -175,5 +181,6 @@ export default function Profile() {
             portalElement
         )}
         <LoginModal open={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+        <JoinOrganizationModal open={isJoinOrgOpen} onClose={() => setIsJoinOrgOpen(false)} />
     </>
 }

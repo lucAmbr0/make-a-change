@@ -166,6 +166,40 @@ export async function getOrganization(data: {
   }
 }
 
+export async function getOrganizationWithCountsById(data: {
+  organization_id: number;
+}) {
+  try {
+    const rows = await query<organizationResponseSchema>(
+      `
+      SELECT
+        o.*,
+        COALESCE((SELECT COUNT(*) FROM members WHERE organization_id = o.id), 0) AS members_count,
+        COALESCE((SELECT COUNT(*) FROM campaigns WHERE organization_id = o.id), 0) AS campaigns_count,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name
+      FROM organizations AS o
+        LEFT JOIN users AS u ON o.creator_id = u.id
+      WHERE o.id = ?
+      `,
+      [data.organization_id],
+    );
+    return rows[0] || null;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getOrganizationWithCountsById:", error);
+      throw new InternalServerError("Failed to get organization.", {
+        operation: "getOrganizationWithCountsById",
+        dbCode: (error as DBError).code,
+      });
+    }
+    console.error("Unexpected error in getOrganizationWithCountsById:", error);
+    throw new InternalServerError("Failed to retrieve organization from database", {
+      operation: "getOrganizationWithCountsById",
+    });
+  }
+}
+
 export async function getOrganizationById(data: { organization_id: number }) {
   try {
     const rows = await query<organizationRowSchema>(

@@ -105,7 +105,7 @@ DROP TABLE IF EXISTS `invite_codes`;
 CREATE TABLE IF NOT EXISTS `invite_codes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `organization_id` int(11) NOT NULL,
-  `code` varchar(8) NOT NULL,
+  `code` varchar(6) NOT NULL,
   `uses` int(11) NOT NULL DEFAULT 1,
   `expires_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),

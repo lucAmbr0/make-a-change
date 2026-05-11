@@ -6,7 +6,7 @@ export const joinOrganizationInput = zod
     organizationId: zod.number().int().positive().optional(),
     invite_code: zod
       .string({ message: "Invite code must be a string" })
-      .regex(/^[A-Z]{3}-\d{3}$/, "Invite code must be in the format AAA-123")
+      .regex(/^[A-Z0-9]{6}$/, "Invite code must be 6 uppercase alphanumeric characters")
       .optional(),
   })
   .superRefine((value, ctx) => {

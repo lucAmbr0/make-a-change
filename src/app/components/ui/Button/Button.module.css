@@ -11,6 +11,12 @@
     text-decoration: none;
 }
 
+.iconOnly {
+    padding: 8px;
+    border-radius: 50%;
+    line-height: 0;
+}
+
 .iconLeft {
     margin: auto 10px auto 0;
 }

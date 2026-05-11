@@ -18,19 +18,15 @@ import {
 } from "../schemas/invite_codes";
 import { authGetOrganization } from "./organizationService";
 import { addMemberForUser } from "./memberService";
+import { getOrganizationWithCountsById } from "../db/organizations";
 import { requireOrganizationModeratorOrOwner } from "../auth/permissions";
 import { parseBody } from "../api/body";
 
 function generateInviteCode(): string {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const digits = "0123456789";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
-  for (let i = 0; i < 3; i++) {
-    code += letters[Math.floor(Math.random() * letters.length)];
-  }
-  code += "-";
-  for (let i = 0; i < 3; i++) {
-    code += digits[Math.floor(Math.random() * digits.length)];
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
 }
@@ -132,4 +128,50 @@ export async function joinOrganizationWithInviteCode(ctx: RequestCtx) {
   await decrementInviteCodeUses({ id: inviteCode.id });
 
   return member;
+}
+
+export async function lookupOrganizationByInviteCode(ctx: RequestCtx) {
+  const url = ctx.request?.nextUrl;
+  const rawCode = url?.searchParams.get("invite_code") ?? null;
+
+  if (!rawCode) {
+    throw new ValidationError("Invite code is required", { invite_code: "required" });
+  }
+
+  const code = rawCode.toUpperCase().trim();
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    throw new ValidationError("Invalid invite code format", {
+      invite_code: "must be 6 uppercase alphanumeric characters",
+    });
+  }
+
+  const inviteCode = await getInviteCodeByCode({ code });
+  if (!inviteCode) throw new NotFoundError("Codice invito non trovato.");
+
+  if (inviteCode.expires_at && inviteCode.expires_at < new Date()) {
+    await deleteInviteCodeByCodeInOrganization({
+      code: inviteCode.code,
+      organization_id: inviteCode.organization_id,
+    });
+    throw new ValidationError("Il codice invito è scaduto.", { invite_code: code });
+  }
+
+  if (inviteCode.uses <= 0) {
+    await deleteInviteCodeByCodeInOrganization({
+      code: inviteCode.code,
+      organization_id: inviteCode.organization_id,
+    });
+    throw new ValidationError("Il codice invito non ha più utilizzi disponibili.", { invite_code: code });
+  }
+
+  const org = await getOrganizationWithCountsById({ organization_id: inviteCode.organization_id });
+  if (!org) throw new NotFoundError("Organizzazione non trovata.");
+
+  return {
+    id: org.id,
+    name: org.name,
+    members_count: Number(org.members_count ?? 0),
+    campaigns_count: Number(org.campaigns_count ?? 0),
+    requires_approval: Boolean(org.requires_approval),
+  };
 }
