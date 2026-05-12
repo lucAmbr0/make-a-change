@@ -13,6 +13,7 @@ import StatsBox from '@/app/components/ui/StatsBox/StatsBox';
 import CampaignCard from '@/app/components/ui/CampaignCard/CampaignCard';
 import OrganizationCard from '@/app/components/ui/OrganizationCard/OrganizationCard';
 import { getUserProfileCollections } from '@/lib/services/userService';
+import Button from '@/app/components/ui/Button/Button';
 
 async function safeGetUser(userId: number) {
     try {
@@ -118,6 +119,15 @@ export default async function Page({ params }: { params: Promise<{ userId: strin
                     <StatsBox stats={stats} />
                 </div>
             </div>
+            {isLoggedIn && isOwnProfile && (
+                <div className={styles.actionsSuggestions}>
+                    <Button href='/campagne/crea' textSize={18} text="Crea campagna" icon="material-symbols:campaign-outline" type="text" />
+                    <Button href='/organizzazioni/crea' textSize={18} text="Crea organizzazione" icon="material-symbols:groups-outline" type="text" />
+                    <Button href='/notifiche' textSize={18} text="Notifiche" icon="material-symbols:notifications-outline" type="text" />
+                    <Button href={`/utente/modifica`} textSize={18} text="Modifica profilo" icon="material-symbols:edit-outline" type="text" />
+                </div>
+            )}
+
 
             {isLoggedIn && isOwnProfile && signedCampaigns.length > 0 && (
                 <div className={styles.carouselContainer}>
