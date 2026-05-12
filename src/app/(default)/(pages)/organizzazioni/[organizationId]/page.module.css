@@ -1,0 +1,28 @@
+.actionsContainer {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.statsContainer {
+    display: grid;
+    grid-template-columns: 32px auto;
+    gap: 6px 0;
+    align-items: center;
+    color: var(--accent-950);
+    margin-top: auto;
+}
+
+.statsContainer p {
+    margin: 0 10px;
+    font-size: 18px;
+    font-family: var(--font-inter);
+    color: var(--accent-900);
+}
+
+@media (max-width: 768px) {
+    .actionsContainer {
+        flex-wrap: wrap;
+    }
+}

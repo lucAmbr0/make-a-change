@@ -7,6 +7,7 @@ import {
   getOrganizationsNames,
   insertOrganization,
   deleteOrganization,
+  getAllPublicOrganizationsWithCounts,
 } from "../db/organizations";
 import { NotFoundError, ValidationError } from "../errors/ApiError";
 import { memberRowSchema } from "../schemas/members";
@@ -55,6 +56,11 @@ async function organizationNamesExists(name: string) {
     });
   }
   return false;
+}
+
+export async function getOrganizationsList(ctx: RequestCtx) {
+  const auth = getOptionalAuth(ctx);
+  return await getAllPublicOrganizationsWithCounts({ user_id: auth.userId });
 }
 
 export async function getAuthorizedOrganizations(ctx: RequestCtx) {

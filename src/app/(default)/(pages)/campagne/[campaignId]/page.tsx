@@ -4,7 +4,9 @@ import { resolveCoverSrc } from "@/app/components/logic/coverImage";
 import Button from "@/app/components/ui/Button/Button";
 import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
 import Carousel from "@/app/components/ui/Carousel/Carousel";
+import DetailHero from "@/app/components/ui/DetailHero/DetailHero";
 import OrganizationCard from "@/app/components/ui/OrganizationCard/OrganizationCard";
+import PageSection from "@/app/components/ui/PageSection/PageSection";
 import ProgressBar from "@/app/components/ui/ProgressBar/ProgressBar";
 import Paragraph from "@/app/components/ui/Typography/Paragraph/Paragraph";
 import Title from "@/app/components/ui/Typography/Title/Title";
@@ -119,39 +121,34 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
             }
         />
     )}
-    <div className={styles.campaignSummaryContainer}>
-        <div className={styles.campaignSummaryImageContainer}>
-            <img className={styles.campaignSummaryImage} src={resolveCoverSrc(campaign.cover_path)} alt={"Immagine campagna"} />
+    <DetailHero imageSrc={resolveCoverSrc(campaign.cover_path)} imageAlt="Immagine campagna">
+        <h1>{campaign.title}</h1>
+        <h2>{campaign.organization_name}</h2>
+        {campaign.creator_id && (
+            <Link href={`/utente/${campaign.creator_id}`}>
+                <Paragraph
+                    text={((`Promossa da ${campaign.creator_first_name || ""} ${campaign.creator_last_name || ""}`).trim() || "Anonimo")}
+                    alignment="left"
+                    color="accent-950"
+                />
+            </Link>
+        )}
+        <div className={styles.actionsContainer}>
+            <Button text="Sostieni" icon="list-alt-check" type="filled" />
+            <Button text="Condividi" icon="share" type="outlined" />
         </div>
-        <div className={styles.campaignSummaryTextContainer}>
-            <h1>{campaign.title}</h1>
-            <h2>{campaign.organization_name}</h2>
-            {campaign.creator_id && (
-                <Link href={`/utente/${campaign.creator_id}`}>
-                    <Paragraph
-                        text={((`Promossa da ${campaign.creator_first_name || ""} ${campaign.creator_last_name || ""}`).trim() || "Anonimo")}
-                        alignment="left"
-                        color="accent-950"
-                    />
-                </Link>
-            )}
-            <div className={styles.actionsContainer}>
-                <Button text="Sostieni" icon="list-alt-check" type="filled" />
-                <Button text="Condividi" icon="share" type="outlined" />
-            </div>
-            <div className={styles.progressBar}>
-                <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
-            </div>
+        <div className={styles.progressBar}>
+            <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
         </div>
-    </div>
-    <div className={styles.campaignInfoBodyContainer}>
+    </DetailHero>
+    <PageSection>
         <Title text="Informazioni su questa proposta" hierarchy={2} />
         <Paragraph text={campaign.description} color="accent-950" alignment="justify" />
-    </div>
+    </PageSection>
     {organization &&
         <div className={styles.organizationInfoContainer}>
             <div className={styles.organizationCardContainer}>
-                <OrganizationCard organization={organization} />
+                <OrganizationCard organization={organization} href={`/organizzazioni/${organization.id}`} />
             </div>
             <div className={styles.organizationInfoText}>
                 <Title text="Informazioni sull'ente promotore" hierarchy={2} />
@@ -160,7 +157,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
         </div>
     }
     {campaign.comments_active ? (
-        <div className={styles.commentsSectionContainer}>
+        <PageSection>
             <Title text="Commenti" hierarchy={2} />
             <div className={styles.addCommentBox}>
                 <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />
@@ -178,17 +175,16 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                     />
                 ))}
             </div>
-        </div>
+        </PageSection>
     ) : null}
     {organization && relatedCampaigns.length > 0 &&
-        <div className={styles.commentsSectionContainer}>
+        <PageSection>
             <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
             <Carousel
                 direction="horizontal"
                 items={relatedCampaignCards}
             />
-        </div>
+        </PageSection>
     }
-
 </>
 }

@@ -2,11 +2,12 @@ import { organizationResponseSchema } from '@/lib/schemas/organization';
 import styles from './OrganizationCard.module.css';
 import { Icon } from '@iconify/react';
 import { resolveCoverSrc } from '../../logic/coverImage';
+import Link from 'next/link';
 
-export default function OrganizationCard({ organization: organization }: { organization: organizationResponseSchema }) {
+export default function OrganizationCard({ organization, href }: { organization: organizationResponseSchema; href?: string }) {
     const imageSrc = resolveCoverSrc(organization?.cover_path);
 
-    return (
+    const card = (
         <div className={styles.card}>
             <img src={imageSrc} alt="Immagine dell'organizzazione" className={styles.organizationImage} />
             <h2 className={styles.organizationName}>{organization.name}</h2>
@@ -19,4 +20,7 @@ export default function OrganizationCard({ organization: organization }: { organ
             </div>
         </div>
     );
+
+    if (href) return <Link href={href} style={{ textDecoration: 'none' }}>{card}</Link>;
+    return card;
 }

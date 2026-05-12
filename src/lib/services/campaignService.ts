@@ -146,6 +146,18 @@ export async function authGetCampaign(ctx: RequestCtx, campaignId: number) {
   return await decorateCampaign(campaign, auth.userId, ctx);
 }
 
+export async function getOrganizationCampaigns(
+  ctx: RequestCtx,
+  organizationId: number,
+) {
+  const auth = getOptionalAuth(ctx);
+  const campaigns = await getCampaignsForOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+  });
+  return await decorateCampaigns(campaigns, auth.userId, ctx);
+}
+
 export async function getCampaignsFromSameOrganization(
   ctx: RequestCtx,
   organizationId: number,

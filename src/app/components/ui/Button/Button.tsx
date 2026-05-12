@@ -10,6 +10,7 @@ export default function Button({
     iconAlign = "left",
     type = "filled",
     textSize = 24,
+    disabled = false,
 }: {
     onClick?: () => void;
     href?: string;
@@ -18,6 +19,7 @@ export default function Button({
     type?: "filled" | "outlined" | "text";
     textSize?: number;
     iconAlign?: "left" | "right";
+    disabled?: boolean,
 }) {
 
     const iconOnly = Boolean(icon) && !text;
@@ -36,5 +38,7 @@ export default function Button({
         return <Link href={href} className={buttonClass}>{content}</Link>;
     }
 
-    return <button className={buttonClass} onClick={onClick}>{content}</button>;
+    return <button className={buttonClass} onClick={onClick} disabled={disabled}>
+        {content}
+    </button>;
 }

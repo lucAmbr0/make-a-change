@@ -376,6 +376,45 @@ export async function getOrganizationsForUser(data: {
   }
 }
 
+export async function getAllPublicOrganizationsWithCounts(data: {
+  user_id: number | null;
+}) {
+  try {
+    const rows = await query<organizationResponseSchema>(
+      `
+      SELECT DISTINCT
+        o.*,
+        COALESCE((SELECT COUNT(*) FROM members WHERE organization_id = o.id), 0) AS members_count,
+        COALESCE((SELECT COUNT(*) FROM campaigns WHERE organization_id = o.id), 0) AS campaigns_count,
+        u.first_name as creator_first_name,
+        u.last_name as creator_last_name
+      FROM organizations AS o
+        LEFT JOIN users AS u ON o.creator_id = u.id
+        LEFT JOIN members AS m
+          ON o.id = m.organization_id
+          AND m.user_id = ?
+      WHERE o.is_public = 1
+        OR m.user_id IS NOT NULL
+      ORDER BY o.created_at DESC
+      `,
+      [data.user_id || null],
+    );
+    return rows;
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getAllPublicOrganizationsWithCounts:", error);
+      throw new InternalServerError("Failed to get organizations.", {
+        operation: "getAllPublicOrganizationsWithCounts",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in getAllPublicOrganizationsWithCounts:", error);
+    throw new InternalServerError("Failed to retrieve organizations from database", {
+      operation: "getAllPublicOrganizationsWithCounts",
+    });
+  }
+}
+
 export async function getOrganizationsForMemberForViewer(data: {
   target_user_id: number;
   viewer_user_id: number | null;
