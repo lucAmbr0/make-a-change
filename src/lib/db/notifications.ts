@@ -2,6 +2,42 @@ import { InternalServerError } from "../errors/ApiError";
 import { notificationRowSchema } from "../schemas/notifications";
 import { DBError, query } from "./query";
 
+function getWriteMeta(result: unknown): { affectedRows: number; insertId: number } {
+  const writeResult =
+    Array.isArray(result) && result.length > 0 ? result[0] : result;
+
+  if (!writeResult || typeof writeResult !== "object") {
+    return { affectedRows: 0, insertId: 0 };
+  }
+
+  return {
+    affectedRows:
+      typeof (writeResult as { affectedRows?: unknown }).affectedRows ===
+      "number"
+        ? ((writeResult as { affectedRows: number }).affectedRows ?? 0)
+        : 0,
+    insertId:
+      typeof (writeResult as { insertId?: unknown }).insertId === "number"
+        ? ((writeResult as { insertId: number }).insertId ?? 0)
+        : 0,
+  };
+}
+
+function buildCountOnlyRows(
+  count: number,
+  title: string,
+  text: string,
+  isRead: boolean,
+): notificationRowSchema[] {
+  return Array.from({ length: count }, () => ({
+    id: 0,
+    target_user_id: 0,
+    title,
+    text,
+    is_read: isRead,
+  }));
+}
+
 export async function insertNotificationOnUser(data: {
   target_user_id: number;
   title: string;
@@ -9,7 +45,8 @@ export async function insertNotificationOnUser(data: {
   is_read?: boolean | null;
 }) {
   try {
-    const rows = await query<notificationRowSchema>(
+    const writeMeta = getWriteMeta(
+      await query<unknown>(
       `
       INSERT INTO notifications
         (
@@ -19,9 +56,28 @@ export async function insertNotificationOnUser(data: {
           is_read
         )
       VALUES (?, ?, ?, ?)
-      RETURNING *
       `,
       [data.target_user_id, data.title, data.text, data.is_read ? 1 : 0],
+      ),
+    );
+
+    if (writeMeta.affectedRows < 1 || writeMeta.insertId < 1) {
+      throw new InternalServerError(
+        "Notification creation failed: no rows affected",
+        {
+          operation: "insertNotificationOnUser",
+        },
+      );
+    }
+
+    const rows = await query<notificationRowSchema>(
+      `
+      SELECT *
+      FROM notifications
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [writeMeta.insertId],
     );
 
     if (!rows || rows.length === 0) {
@@ -56,7 +112,8 @@ export async function insertNotificationsForOrganization(data: {
   is_read?: boolean | null;
 }) {
   try {
-    const rows = await query<notificationRowSchema>(
+    const writeMeta = getWriteMeta(
+      await query<unknown>(
       `
       INSERT INTO notifications
         (
@@ -68,12 +125,19 @@ export async function insertNotificationsForOrganization(data: {
       SELECT m.user_id, ?, ?, ?
       FROM members m
       WHERE m.organization_id = ?
-      RETURNING *
       `,
       [data.title, data.text, data.is_read ? 1 : 0, data.organization_id],
+      ),
     );
 
-    if (!rows) {
+    const insertedRows = buildCountOnlyRows(
+      writeMeta.affectedRows,
+      data.title,
+      data.text,
+      Boolean(data.is_read),
+    );
+
+    if (!insertedRows) {
       throw new InternalServerError(
         "Notification creation failed: no rows returned",
         {
@@ -82,7 +146,7 @@ export async function insertNotificationsForOrganization(data: {
       );
     }
 
-    return rows;
+    return insertedRows;
   } catch (error) {
     if (error instanceof DBError) {
       console.error("Database error in insertNotificationsForOrganization:", error);
@@ -132,12 +196,32 @@ export async function deleteNotification(data: { id: number }) {
 
 export async function readNotification(data: { id: number }) {
   try {
-    const rows = await query<notificationRowSchema>(
+    const writeMeta = getWriteMeta(
+      await query<unknown>(
       `
       UPDATE notifications
       SET is_read = 1
       WHERE id = ?
-      RETURNING *
+      `,
+      [data.id],
+      ),
+    );
+
+    if (writeMeta.affectedRows < 1) {
+      throw new InternalServerError(
+        "Notification update failed: no rows affected",
+        {
+          operation: "readNotification",
+        },
+      );
+    }
+
+    const rows = await query<notificationRowSchema>(
+      `
+      SELECT *
+      FROM notifications
+      WHERE id = ?
+      LIMIT 1
       `,
       [data.id],
     );
@@ -197,12 +281,21 @@ export async function getUserNotifications(data: { user_id: number }) {
 
 export async function readAllNotificationsForUser(data: { user_id: number }) {
   try {
-    const rows = await query<notificationRowSchema>(
+    await query<unknown>(
       `
       UPDATE notifications
       SET is_read = 1
       WHERE target_user_id = ?
-      RETURNING *
+      `,
+      [data.user_id],
+    );
+
+    const rows = await query<notificationRowSchema>(
+      `
+      SELECT *
+      FROM notifications
+      WHERE target_user_id = ?
+      ORDER BY id DESC
       `,
       [data.user_id],
     );
@@ -256,7 +349,8 @@ export async function insertNotificationsForCampaignSigners(data: {
   is_read?: boolean | null;
 }) {
   try {
-    const rows = await query<notificationRowSchema>(
+    const writeMeta = getWriteMeta(
+      await query<unknown>(
       `
       INSERT INTO notifications
         (
@@ -268,12 +362,19 @@ export async function insertNotificationsForCampaignSigners(data: {
       SELECT DISTINCT s.signer_id, ?, ?, ?
       FROM signatures s
       WHERE s.campaign_id = ?
-      RETURNING *
       `,
       [data.title, data.text, data.is_read ? 1 : 0, data.campaign_id],
+      ),
     );
 
-    if (!rows) {
+    const insertedRows = buildCountOnlyRows(
+      writeMeta.affectedRows,
+      data.title,
+      data.text,
+      Boolean(data.is_read),
+    );
+
+    if (!insertedRows) {
       throw new InternalServerError(
         "Notification creation failed: no rows returned",
         {
@@ -282,7 +383,7 @@ export async function insertNotificationsForCampaignSigners(data: {
       );
     }
 
-    return rows;
+    return insertedRows;
   } catch (error) {
     if (error instanceof DBError) {
       console.error("Database error in insertNotificationsForCampaignSigners:", error);
@@ -310,7 +411,8 @@ export async function insertNotificationsForAllUsers(data: {
   is_read?: boolean | null;
 }) {
   try {
-    const rows = await query<notificationRowSchema>(
+    const writeMeta = getWriteMeta(
+      await query<unknown>(
       `
       INSERT INTO notifications
         (
@@ -322,12 +424,19 @@ export async function insertNotificationsForAllUsers(data: {
       SELECT u.id, ?, ?, ?
       FROM users u
       WHERE u.is_active = 1
-      RETURNING *
       `,
       [data.title, data.text, data.is_read ? 1 : 0],
+      ),
     );
 
-    if (!rows) {
+    const insertedRows = buildCountOnlyRows(
+      writeMeta.affectedRows,
+      data.title,
+      data.text,
+      Boolean(data.is_read),
+    );
+
+    if (!insertedRows) {
       throw new InternalServerError(
         "Notification creation failed: no rows returned",
         {
@@ -336,7 +445,7 @@ export async function insertNotificationsForAllUsers(data: {
       );
     }
 
-    return rows;
+    return insertedRows;
   } catch (error) {
     if (error instanceof DBError) {
       console.error("Database error in insertNotificationsForAllUsers:", error);

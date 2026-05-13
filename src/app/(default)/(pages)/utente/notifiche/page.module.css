@@ -1,0 +1,13 @@
+.pageContainer {
+    margin: 0 10%;
+}
+
+.notificationsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.emptyNotificationsText {
+    color: var(--accent-900);
+}

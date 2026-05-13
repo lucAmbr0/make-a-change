@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import styles from './Button.module.css';
 import { Icon } from '@iconify/react';
@@ -6,6 +8,7 @@ export default function Button({
     onClick,
     href,
     text = "",
+    title = "",
     icon = "",
     iconAlign = "left",
     type = "filled",
@@ -15,6 +18,7 @@ export default function Button({
     onClick?: () => void;
     href?: string;
     text?: string;
+    title?: string;
     icon?: string;
     type?: "filled" | "outlined" | "text";
     textSize?: number;
@@ -35,10 +39,10 @@ export default function Button({
     </>;
 
     if (href) {
-        return <Link href={href} className={buttonClass}>{content}</Link>;
+        return <Link title={title} href={href} className={buttonClass}>{content}</Link>;
     }
 
-    return <button className={buttonClass} onClick={onClick} disabled={disabled}>
+    return <button className={buttonClass} title={title} onClick={onClick} disabled={disabled}>
         {content}
     </button>;
 }
