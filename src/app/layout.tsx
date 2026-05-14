@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import UserProvider from "@/app/components/logic/UserProvider";
-import ServiceWorkerRegistrar from "@/app/components/logic/ServiceWorkerRegistrar";
 import PwaInstallBanner from "@/app/components/ui/PwaInstallBanner/PwaInstallBanner";
 import branding from "./components/logic/branding";
 
@@ -35,7 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <UserProvider>{children}</UserProvider>
         <PwaInstallBanner />
-        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

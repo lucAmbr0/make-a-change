@@ -2,6 +2,7 @@ import styles from "./page.module.css";
 import AddCommentBox from "@/app/components/ui/AddCommentBox/AddCommentBox";
 import { resolveCoverSrc } from "@/app/components/logic/coverImage";
 import Button from "@/app/components/ui/Button/Button";
+import SupportSignature from "@/app/components/ui/SupportSignature/SupportSignature";
 import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
 import Carousel from "@/app/components/ui/Carousel/Carousel";
 import DetailHero from "@/app/components/ui/DetailHero/DetailHero";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/services/campaignService";
 import { authGetCampaignComments } from "@/lib/services/commentService";
 import { authGetOrganization } from "@/lib/services/organizationService";
+import { getUserSignatureInCampaign } from "@/lib/db/signatures";
 import { getServerCtx } from "@/lib/auth/ctx";
 import { NotFoundError } from "@/lib/errors/ApiError";
 import { Metadata } from "next";
@@ -91,6 +93,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
     const auth = getOptionalAuth(ctx);
 
     let userRole = "";
+    let userHasSigned = false;
     if (auth.userId !== null) {
         if (campaign.creator_id === auth.userId) {
             userRole = "proprietario";
@@ -102,89 +105,102 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                 userRole = "moderatore nell'organizzazione";
             }
         }
+
+        const userSignature = await getUserSignatureInCampaign({
+            signer_id: auth.userId,
+            campaign_id: parsedCampaignId,
+        }).catch(() => null);
+        userHasSigned = !!userSignature;
     }
 
     const showRoleBanner = userRole !== "" && campaign.permissions?.can_edit;
 
     return <>
-    {showRoleBanner && (
-        <Banner
-            primaryLabel={"Sei " + userRole + " di questa campagna."}
-            actions={
-                <Button
-                    href={`/campagne/${parsedCampaignId}/edit`}
-                    text="Modifica campagna"
-                    icon="edit"
-                    type="outlined"
-                    textSize={18}
-                />
-            }
-        />
-    )}
-    <DetailHero imageSrc={resolveCoverSrc(campaign.cover_path)} imageAlt="Immagine campagna">
-        <h1>{campaign.title}</h1>
-        <h2>{campaign.organization_name}</h2>
-        {campaign.creator_id && (
-            <Link href={`/utente/${campaign.creator_id}`}>
-                <Paragraph
-                    text={((`Promossa da ${campaign.creator_first_name || ""} ${campaign.creator_last_name || ""}`).trim() || "Anonimo")}
-                    alignment="left"
-                    color="accent-950"
-                />
-            </Link>
-        )}
-        <div className={styles.actionsContainer}>
-            <Button text="Sostieni" icon="list-alt-check" type="filled" />
-            <Button text="Condividi" icon="share" type="outlined" />
-        </div>
-        <div className={styles.progressBar}>
-            <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
-        </div>
-    </DetailHero>
-    <PageSection>
-        <Title text="Informazioni su questa proposta" hierarchy={2} />
-        <Paragraph text={campaign.description} color="accent-950" alignment="justify" />
-    </PageSection>
-    {organization &&
-        <div className={styles.organizationInfoContainer}>
-            <div className={styles.organizationCardContainer}>
-                <OrganizationCard organization={organization} href={`/organizzazioni/${organization.id}`} />
-            </div>
-            <div className={styles.organizationInfoText}>
-                <Title text="Informazioni sull'ente promotore" hierarchy={2} />
-                <Paragraph text={organization.description || ""} color="accent-950" alignment="justify" />
-            </div>
-        </div>
-    }
-    {campaign.comments_active ? (
-        <PageSection>
-            <Title text="Commenti" hierarchy={2} />
-            <div className={styles.addCommentBox}>
-                <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />
-            </div>
-            <div className={styles.commentsContainer}>
-                {comments.map((comment) => (
-                    <CommentBox
-                        key={comment.id}
-                        authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
-                        commentText={comment.text}
-                        commentId={comment.id}
-                        authorId={comment.user_id}
-                        campaignId={parsedCampaignId}
-                        canDelete={comment.permissions?.can_delete ?? false}
+        {showRoleBanner && (
+            <Banner
+                primaryLabel={"Sei " + userRole + " di questa campagna."}
+                actions={
+                    <Button
+                        href={`/campagne/${parsedCampaignId}/edit`}
+                        text="Modifica campagna"
+                        icon="edit"
+                        type="outlined"
+                        textSize={18}
                     />
-                ))}
-            </div>
-        </PageSection>
-    ) : null}
-    {organization && relatedCampaigns.length > 0 &&
-        <PageSection>
-            <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
-            <Carousel
-                direction="horizontal"
-                items={relatedCampaignCards}
+                }
             />
+        )}
+        <DetailHero imageSrc={resolveCoverSrc(campaign.cover_path)} imageAlt="Immagine campagna">
+            <h1>{campaign.title}</h1>
+            <h2>{campaign.organization_name}</h2>
+            {campaign.creator_id && (
+                <Link href={`/utente/${campaign.creator_id}`}>
+                    <Paragraph
+                        text={((`Promossa da ${campaign.creator_first_name || ""} ${campaign.creator_last_name || ""}`).trim() || "Anonimo")}
+                        alignment="left"
+                        color="accent-950"
+                    />
+                </Link>
+            )}
+            <div className={styles.actionsContainer}>
+                <SupportSignature
+                    campaignId={parsedCampaignId}
+                    campaignTitle={campaign.title}
+                    campaignOrganizationName={campaign.organization_name || ""}
+                    campaignCreatorName={campaign.creator_first_name && campaign.creator_last_name ? `${campaign.creator_first_name} ${campaign.creator_last_name}` : null}
+                    alreadySigned={userHasSigned}
+                    isAuthenticated={auth.userId !== null}
+                />
+                <Button text="Condividi" icon="share" type="outlined" />
+            </div>
+            <div className={styles.progressBar}>
+                <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
+            </div>
+        </DetailHero>
+        <PageSection>
+            <Title text="Informazioni su questa proposta" hierarchy={2} />
+            <Paragraph text={campaign.description} color="accent-950" alignment="justify" />
         </PageSection>
-    }
-</>
+        {organization &&
+            <div className={styles.organizationInfoContainer}>
+                <div className={styles.organizationCardContainer}>
+                    <OrganizationCard organization={organization} href={`/organizzazioni/${organization.id}`} />
+                </div>
+                <div className={styles.organizationInfoText}>
+                    <Title text="Informazioni sull'ente promotore" hierarchy={2} />
+                    <Paragraph text={organization.description || ""} color="accent-950" alignment="justify" />
+                </div>
+            </div>
+        }
+        {campaign.comments_active ? (
+            <PageSection>
+                <Title text="Commenti" hierarchy={2} />
+                <div className={styles.addCommentBox}>
+                    <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />
+                </div>
+                <div className={styles.commentsContainer}>
+                    {comments.map((comment) => (
+                        <CommentBox
+                            key={comment.id}
+                            authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
+                            commentText={comment.text}
+                            commentId={comment.id}
+                            authorId={comment.user_id}
+                            campaignId={parsedCampaignId}
+                            canDelete={comment.permissions?.can_delete ?? false}
+                        />
+                    ))}
+                </div>
+            </PageSection>
+        ) : null}
+        {organization && relatedCampaigns.length > 0 &&
+            <PageSection>
+                <Title text={`Altre iniziative da ${organization?.name}`} hierarchy={2} />
+                <Carousel
+                    direction="horizontal"
+                    items={relatedCampaignCards}
+                />
+            </PageSection>
+        }
+    </>
 }

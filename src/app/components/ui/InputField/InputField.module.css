@@ -25,6 +25,10 @@
     opacity: 0.8;
 }
 
+.textInput:disabled {
+    opacity: 0.8;
+}
+
 .rangeInput {
     -webkit-appearance: none;
     appearance: none;
@@ -74,7 +78,7 @@
 
 .toggleLabel {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     cursor: pointer;
     font-size: 16px;

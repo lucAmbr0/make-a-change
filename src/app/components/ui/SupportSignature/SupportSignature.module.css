@@ -1,0 +1,37 @@
+.unsignModal {
+	padding: 10px 12px;
+}
+
+.unsignTitle {
+	margin: 0 0 8px 0;
+	font-family: var(--font-playfair);
+	color: var(--accent-900);
+	font-size: 28px;
+	font-weight: 800;
+}
+
+.unsignDescription {
+	margin: 0 0 20px 0;
+	color: var(--accent-800);
+	font-family: var(--font-inter);
+	font-size: 16px;
+}
+
+.bannerWrap {
+	margin-bottom: 12px;
+}
+
+.actions {
+	margin-top: 24px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+}
+
+.successText {
+	color: var(--success-700);
+}
+
+.errorText {
+	color: var(--danger-700);
+}
