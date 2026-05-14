@@ -22,6 +22,8 @@ import {
 import { DBError } from "../db/query";
 import { signToken } from "../auth/auth";
 import { decorateCampaigns } from "./permissionsDecorator";
+import { createNotificationForUser } from "./notificationService";
+import branding from "@/app/components/logic/branding";
 
 export async function createUser(input: createUserInput) {
   let password_hashed: string;
@@ -35,7 +37,7 @@ export async function createUser(input: createUserInput) {
   }
 
   try {
-    return await insertUser({
+    const user = await insertUser({
       first_name: input.first_name.trim(),
       last_name: input.last_name.trim(),
       email: input.email,
@@ -46,6 +48,15 @@ export async function createUser(input: createUserInput) {
       is_active: 1,
       is_admin: 0,
     });
+
+    createNotificationForUser({
+      target_user_id: user.id,
+      title: `Benvenuto su ${branding.appName}, ${user.first_name}!`.slice(0, 128),
+      text: `Ora che fai parte della community puoi scoprire tante opportunità di cambiamento. Con un account puoi firmare e repostare le iniziative importanti per te, commentare le iniziative, unirti a delle organizzazioni e molto altro! Clicca per vedere il tuo profilo.`,
+      href: `/utente/${user.id}`,
+    }).catch(() => null);
+
+    return user;
   } catch (error) {
     if (error instanceof DBError) {
       if (error.code === "ER_DUP_ENTRY" && error.message.includes("email")) {

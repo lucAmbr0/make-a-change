@@ -114,12 +114,14 @@ export async function createNotificationForUser(data: {
   target_user_id: number;
   title: string;
   text: string;
+  href?: string | null;
 }) {
   return await insertNotificationOnUser({
     target_user_id: data.target_user_id,
     title: data.title,
     text: data.text,
     is_read: false,
+    href: data.href,
   });
 }
 
@@ -127,12 +129,14 @@ export async function createNotificationForOrganization(data: {
   organization_id: number;
   title: string;
   text: string;
+  href?: string | null;
 }) {
   return await insertNotificationsForOrganization({
     organization_id: data.organization_id,
     title: data.title,
     text: data.text,
     is_read: false,
+    href: data.href,
   });
 }
 
@@ -140,23 +144,27 @@ export async function createNotificationForCampaignSigners(data: {
   campaign_id: number;
   title: string;
   text: string;
+  href?: string | null;
 }) {
   return await insertNotificationsForCampaignSigners({
     campaign_id: data.campaign_id,
     title: data.title,
     text: data.text,
     is_read: false,
+    href: data.href,
   });
 }
 
 export async function createNotificationForAllUsers(data: {
   title: string;
   text: string;
+  href?: string | null;
 }) {
   return await insertNotificationsForAllUsers({
     title: data.title,
     text: data.text,
     is_read: false,
+    href: data.href,
   });
 }
 
@@ -171,6 +179,7 @@ export async function createNotificationService(ctx: RequestCtx) {
       target_user_id: input.target_user_id,
       title: input.title,
       text: input.text,
+      href: input.href,
     });
     return {
       success: true,
@@ -184,6 +193,7 @@ export async function createNotificationService(ctx: RequestCtx) {
       organization_id: input.organization_id,
       title: input.title,
       text: input.text,
+      href: input.href,
     });
     return {
       success: true,
@@ -197,6 +207,7 @@ export async function createNotificationService(ctx: RequestCtx) {
       campaign_id: input.campaign_id,
       title: input.title,
       text: input.text,
+      href: input.href,
     });
     return {
       success: true,
@@ -209,6 +220,7 @@ export async function createNotificationService(ctx: RequestCtx) {
     const notifications = await createNotificationForAllUsers({
       title: input.title,
       text: input.text,
+      href: input.href,
     });
     return {
       success: true,

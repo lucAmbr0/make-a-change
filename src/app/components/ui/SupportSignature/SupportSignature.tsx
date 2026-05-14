@@ -9,20 +9,22 @@ import Banner from "@/app/components/ui/Banner/Banner";
 import { apiFetch, ApiClientError } from "@/lib/api/client";
 import styles from "./SupportSignature.module.css";
 
-export default function SupportSignature({ 
+export default function SupportSignature({
   campaignId,
   campaignTitle,
   campaignOrganizationName,
   campaignCreatorName,
   alreadySigned = false,
   isAuthenticated = false,
-}: { 
+  isCreator = false,
+}: {
   campaignId: number;
   campaignTitle: string;
   campaignOrganizationName: string | null;
   campaignCreatorName: string | null;
   alreadySigned?: boolean;
   isAuthenticated?: boolean;
+  isCreator?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -100,7 +102,7 @@ export default function SupportSignature({
           }
           setOpen(true);
         }}
-        disabled={false}
+        disabled={isCreator}
       />
       {!alreadySigned && (
         <ConfirmSignatureModal

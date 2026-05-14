@@ -135,9 +135,10 @@ DROP TABLE IF EXISTS `notifications`;
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `target_user_id` int(11) NOT NULL,
-  `title` varchar(32) NOT NULL,
+  `title` varchar(128) NOT NULL,
   `text` text NOT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `href` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_target_id` (`target_user_id`) USING BTREE,
   CONSTRAINT `notif_user_fk` FOREIGN KEY (`target_user_id`) REFERENCES `users` (`id`)

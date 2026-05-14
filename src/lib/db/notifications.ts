@@ -28,6 +28,7 @@ function buildCountOnlyRows(
   title: string,
   text: string,
   isRead: boolean,
+  href?: string | null,
 ): notificationRowSchema[] {
   return Array.from({ length: count }, () => ({
     id: 0,
@@ -35,6 +36,7 @@ function buildCountOnlyRows(
     title,
     text,
     is_read: isRead,
+    href: href ?? null,
   }));
 }
 
@@ -43,6 +45,7 @@ export async function insertNotificationOnUser(data: {
   title: string;
   text: string;
   is_read?: boolean | null;
+  href?: string | null;
 }) {
   try {
     const writeMeta = getWriteMeta(
@@ -53,11 +56,12 @@ export async function insertNotificationOnUser(data: {
           target_user_id,
           title,
           text,
-          is_read
+          is_read,
+          href
         )
-      VALUES (?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?)
       `,
-      [data.target_user_id, data.title, data.text, data.is_read ? 1 : 0],
+      [data.target_user_id, data.title, data.text, data.is_read ? 1 : 0, data.href ?? null],
       ),
     );
 
@@ -110,6 +114,7 @@ export async function insertNotificationsForOrganization(data: {
   title: string;
   text: string;
   is_read?: boolean | null;
+  href?: string | null;
 }) {
   try {
     const writeMeta = getWriteMeta(
@@ -120,13 +125,14 @@ export async function insertNotificationsForOrganization(data: {
           target_user_id,
           title,
           text,
-          is_read
+          is_read,
+          href
         )
-      SELECT m.user_id, ?, ?, ?
+      SELECT m.user_id, ?, ?, ?, ?
       FROM members m
       WHERE m.organization_id = ?
       `,
-      [data.title, data.text, data.is_read ? 1 : 0, data.organization_id],
+      [data.title, data.text, data.is_read ? 1 : 0, data.href ?? null, data.organization_id],
       ),
     );
 
@@ -135,6 +141,7 @@ export async function insertNotificationsForOrganization(data: {
       data.title,
       data.text,
       Boolean(data.is_read),
+      data.href,
     );
 
     if (!insertedRows) {
@@ -347,6 +354,7 @@ export async function insertNotificationsForCampaignSigners(data: {
   title: string;
   text: string;
   is_read?: boolean | null;
+  href?: string | null;
 }) {
   try {
     const writeMeta = getWriteMeta(
@@ -357,13 +365,14 @@ export async function insertNotificationsForCampaignSigners(data: {
           target_user_id,
           title,
           text,
-          is_read
+          is_read,
+          href
         )
-      SELECT DISTINCT s.signer_id, ?, ?, ?
+      SELECT DISTINCT s.signer_id, ?, ?, ?, ?
       FROM signatures s
       WHERE s.campaign_id = ?
       `,
-      [data.title, data.text, data.is_read ? 1 : 0, data.campaign_id],
+      [data.title, data.text, data.is_read ? 1 : 0, data.href ?? null, data.campaign_id],
       ),
     );
 
@@ -372,6 +381,7 @@ export async function insertNotificationsForCampaignSigners(data: {
       data.title,
       data.text,
       Boolean(data.is_read),
+      data.href,
     );
 
     if (!insertedRows) {
@@ -409,6 +419,7 @@ export async function insertNotificationsForAllUsers(data: {
   title: string;
   text: string;
   is_read?: boolean | null;
+  href?: string | null;
 }) {
   try {
     const writeMeta = getWriteMeta(
@@ -419,13 +430,14 @@ export async function insertNotificationsForAllUsers(data: {
           target_user_id,
           title,
           text,
-          is_read
+          is_read,
+          href
         )
-      SELECT u.id, ?, ?, ?
+      SELECT u.id, ?, ?, ?, ?
       FROM users u
       WHERE u.is_active = 1
       `,
-      [data.title, data.text, data.is_read ? 1 : 0],
+      [data.title, data.text, data.is_read ? 1 : 0, data.href ?? null],
       ),
     );
 
@@ -434,6 +446,7 @@ export async function insertNotificationsForAllUsers(data: {
       data.title,
       data.text,
       Boolean(data.is_read),
+      data.href,
     );
 
     if (!insertedRows) {

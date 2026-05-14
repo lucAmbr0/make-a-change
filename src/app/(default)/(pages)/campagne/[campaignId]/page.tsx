@@ -151,6 +151,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                     campaignCreatorName={campaign.creator_first_name && campaign.creator_last_name ? `${campaign.creator_first_name} ${campaign.creator_last_name}` : null}
                     alreadySigned={userHasSigned}
                     isAuthenticated={auth.userId !== null}
+                    isCreator={auth.userId !== null && campaign.creator_id === auth.userId}
                 />
                 <Button text="Condividi" icon="share" type="outlined" />
             </div>
@@ -174,7 +175,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
             </div>
         }
         {campaign.comments_active ? (
-            <PageSection>
+            <PageSection id="commenti">
                 <Title text="Commenti" hierarchy={2} />
                 <div className={styles.addCommentBox}>
                     <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />

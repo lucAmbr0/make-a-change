@@ -3,9 +3,10 @@ import zod from "zod";
 export const notificationRowSchema = zod.object({
   id: zod.number().int(),
   target_user_id: zod.number().int(),
-  title: zod.string().max(32),
+  title: zod.string().max(128),
   text: zod.string(),
   is_read: zod.boolean(),
+  href: zod.string().nullable().optional(),
 });
 
 export type notificationRowSchema = zod.infer<typeof notificationRowSchema>;
@@ -13,9 +14,10 @@ export type notificationRowSchema = zod.infer<typeof notificationRowSchema>;
 export const notificationResponseSchema = zod.object({
   id: zod.number().int(),
   target_user_id: zod.number().int(),
-  title: zod.string().max(32),
+  title: zod.string().max(128),
   text: zod.string(),
   is_read: zod.boolean(),
+  href: zod.string().nullable().optional(),
 });
 
 export type notificationResponseSchema = zod.infer<typeof notificationResponseSchema>;
@@ -54,6 +56,8 @@ export const notificationActionInput = zod.union([
 
 export type notificationActionInput = zod.infer<typeof notificationActionInput>;
 
+const hrefField = zod.string().max(255).optional();
+
 export const createNotificationInput = zod.union([
   zod.object({
     type: zod.literal("user"),
@@ -64,13 +68,14 @@ export const createNotificationInput = zod.union([
     title: zod
       .string({ message: "Title is required" })
       .min(1, "Title cannot be empty")
-      .max(32, "Title cannot exceed 32 characters")
+      .max(128, "Title cannot exceed 128 characters")
       .trim(),
     text: zod
       .string({ message: "Text is required" })
       .min(1, "Text cannot be empty")
       .max(65535, "Text is too long")
       .trim(),
+    href: hrefField,
   }),
   zod.object({
     type: zod.literal("organization"),
@@ -81,13 +86,14 @@ export const createNotificationInput = zod.union([
     title: zod
       .string({ message: "Title is required" })
       .min(1, "Title cannot be empty")
-      .max(32, "Title cannot exceed 32 characters")
+      .max(128, "Title cannot exceed 128 characters")
       .trim(),
     text: zod
       .string({ message: "Text is required" })
       .min(1, "Text cannot be empty")
       .max(65535, "Text is too long")
       .trim(),
+    href: hrefField,
   }),
   zod.object({
     type: zod.literal("campaign_signers"),
@@ -98,26 +104,28 @@ export const createNotificationInput = zod.union([
     title: zod
       .string({ message: "Title is required" })
       .min(1, "Title cannot be empty")
-      .max(32, "Title cannot exceed 32 characters")
+      .max(128, "Title cannot exceed 128 characters")
       .trim(),
     text: zod
       .string({ message: "Text is required" })
       .min(1, "Text cannot be empty")
       .max(65535, "Text is too long")
       .trim(),
+    href: hrefField,
   }),
   zod.object({
     type: zod.literal("all_users"),
     title: zod
       .string({ message: "Title is required" })
       .min(1, "Title cannot be empty")
-      .max(32, "Title cannot exceed 32 characters")
+      .max(128, "Title cannot exceed 128 characters")
       .trim(),
     text: zod
       .string({ message: "Text is required" })
       .min(1, "Text cannot be empty")
       .max(65535, "Text is too long")
       .trim(),
+    href: hrefField,
   }),
 ]);
 

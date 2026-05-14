@@ -2,6 +2,16 @@
     margin: 0 10%;
 }
 
+@media (max-width: 768px) {
+    .pageContainer {
+        margin: 0 12px;
+    }
+
+    .notificationsContainer {
+        gap: 8px;
+    }
+}
+
 .notificationsContainer {
     display: flex;
     flex-direction: column;

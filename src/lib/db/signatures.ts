@@ -59,6 +59,28 @@ export async function getAuthorizedCampaignSignaturesCount(data: {
   }
 }
 
+export async function countSignaturesForCampaign(data: {
+  campaign_id: number;
+}) {
+  try {
+    const rows = await query<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM signatures WHERE campaign_id = ?`,
+      [data.campaign_id],
+    );
+    return rows[0]?.count ?? 0;
+  } catch (error) {
+    if (error instanceof DBError) {
+      throw new InternalServerError("Failed to count signatures.", {
+        operation: "countSignaturesForCampaign",
+        dbCode: (error as DBError).code,
+      });
+    }
+    throw new InternalServerError("Failed to count signatures from database", {
+      operation: "countSignaturesForCampaign",
+    });
+  }
+}
+
 export async function getUserSignatureInCampaign(data: {
   signer_id: number;
   campaign_id: number;

@@ -2,14 +2,17 @@ import { createHash } from "crypto";
 import { getOptionalAuth, requireAuthCtx } from "../auth/auth";
 import type { RequestCtx } from "../auth/ctx";
 import {
+  countSignaturesForCampaign,
   deleteSignatureByUserInCampaign,
   getAuthorizedCampaignSignaturesCount,
   getUserSignatureInCampaign,
   insertSignature,
 } from "../db/signatures";
+import { getMembersList } from "../db/members";
 import { NotFoundError, ValidationError } from "../errors/ApiError";
 import { signatureRowSchema } from "../schemas/signatures";
 import { authGetCampaign } from "./campaignService";
+import { createNotificationForUser } from "./notificationService";
 
 function getSignatureChecksum(signerId: number, campaignId: number) {
   return createHash("sha256").update(`${signerId}:${campaignId}`).digest("hex");
@@ -45,6 +48,12 @@ export async function signCampaign(ctx: RequestCtx, campaignId: number) {
     });
   }
 
+  if (campaign.creator_id === auth.userId) {
+    throw new ValidationError("Campaign creators cannot sign their own campaign", {
+      campaign_id: campaignId,
+    });
+  }
+
   const existingSignature = await getUserSignatureInCampaign({
     signer_id: auth.userId,
     campaign_id: campaignId,
@@ -62,6 +71,40 @@ export async function signCampaign(ctx: RequestCtx, campaignId: number) {
     signer_id: auth.userId,
     campaign_id: campaignId,
   });
+
+  const count = await countSignaturesForCampaign({ campaign_id: campaignId }).catch(() => null);
+
+  if (count !== null && campaign.creator_id) {
+    if (count === 1) {
+      createNotificationForUser({
+        target_user_id: campaign.creator_id,
+        title: `La tua campagna ha ottenuto la prima firma!`,
+        text: `${campaign.title} - Ogni grande cambiamento inizia da un piccolo obiettivo. Condividi la tua iniziativa e spargi la voce per raggiungere il tuo obiettivo.`,
+        href: `/campagne/${campaignId}`,
+      }).catch(() => null);
+    }
+
+    if (campaign.signature_goal && count === campaign.signature_goal) {
+      const goalTitle = `Obiettivo firme raggiunto! '${campaign.title}'`.slice(0, 128);
+      const goalText = `La tua campagna "${campaign.title}" ha raggiunto l'obiettivo di ${campaign.signature_goal} firme! Ricorda che puoi ancora aumentare l'obiettivo quando vuoi o archiviare la campagna.`;
+      const goalHref = `/campagne/${campaignId}`;
+
+      const recipients = new Set<number>();
+      recipients.add(campaign.creator_id);
+      if (campaign.organization_id) {
+        const members = await getMembersList({ organization_id: campaign.organization_id }).catch(() => []);
+        for (const m of members) {
+          if (m.is_moderator || m.is_owner) recipients.add(m.user_id);
+        }
+      }
+
+      await Promise.all(
+        [...recipients].map((userId) =>
+          createNotificationForUser({ target_user_id: userId, title: goalTitle, text: goalText, href: goalHref }).catch(() => null),
+        ),
+      );
+    }
+  }
 
   return signature;
 }

@@ -29,6 +29,7 @@ export default async function Page() {
                         title={notification.title}
                         content={notification.text}
                         isRead={notification.is_read}
+                        href={notification.href ?? undefined}
                     />
                 )) : (
                     <p className={styles.emptyNotificationsText}>Nessuna notifica al momento.</p>

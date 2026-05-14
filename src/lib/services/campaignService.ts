@@ -29,6 +29,8 @@ import {
   requireCampaignEdit,
   canAccessCampaign,
 } from "../auth/permissions";
+import { getOrganization } from "../db/organizations";
+import { createNotificationForOrganization } from "./notificationService";
 import {
   buildCampaignPermissions,
   decorateCampaign,
@@ -66,6 +68,22 @@ export async function createCampaign(ctx: RequestCtx) {
     comments_active: input.comments_active,
     comments_require_approval: input.comments_require_approval,
   });
+
+  if (campaign.organization_id) {
+    const org = await getOrganization({
+      user_id: auth.userId,
+      organization_id: campaign.organization_id,
+    }).catch(() => null);
+
+    if (org) {
+      createNotificationForOrganization({
+        organization_id: campaign.organization_id,
+        title: `${org.name} ha pubblicato una nuova iniziativa`.slice(0, 128),
+        text: `${org.name} ha lanciato una nuova campagna: ${campaign.title}`,
+        href: `/campagne/${campaign.id}`,
+      }).catch(() => null);
+    }
+  }
 
   return campaign;
 }

@@ -21,6 +21,9 @@ import {
   requireCommentModeration,
 } from "../auth/permissions";
 import { getMember } from "./memberService";
+import { createNotificationForUser } from "./notificationService";
+import { getUserById } from "../db/users";
+import { getMembersList } from "../db/members";
 import { parseBody } from "../api/body";
 import { decorateComments } from "./permissionsDecorator";
 
@@ -76,6 +79,56 @@ export async function createComment(ctx: RequestCtx, campaignId: number) {
     created_at: new Date(),
     visible: isVisible,
   });
+
+  const needsNotif = !isVisible || (isVisible && !!campaign.creator_id && campaign.creator_id !== auth.userId);
+
+  if (needsNotif) {
+    const author = await getUserById({ userId: auth.userId }).catch(() => null);
+    const authorName = author
+      ? `${author.first_name} ${author.last_name}`.trim() || "Utente"
+      : "Utente";
+    const commentHref = `/campagne/${campaignId}#commenti`;
+
+    if (!isVisible) {
+      const prefix = "Commento in attesa di approvazione su '";
+      const suffix = "'";
+      const available = 128 - prefix.length - suffix.length;
+      const campaignNameTruncated =
+        campaign.title.length > available
+          ? campaign.title.slice(0, available - 1) + "…"
+          : campaign.title;
+
+      const recipients = new Set<number>();
+      if (campaign.creator_id) recipients.add(campaign.creator_id);
+      if (campaign.organization_id) {
+        const members = await getMembersList({ organization_id: campaign.organization_id }).catch(() => []);
+        for (const m of members) {
+          if (m.is_moderator || m.is_owner) recipients.add(m.user_id);
+        }
+      }
+      recipients.delete(auth.userId);
+
+      await Promise.all(
+        [...recipients].map((userId) =>
+          createNotificationForUser({
+            target_user_id: userId,
+            title: `${prefix}${campaignNameTruncated}${suffix}`,
+            text: `${authorName}: ${input.text}`,
+            href: commentHref,
+          }).catch(() => null),
+        ),
+      );
+    }
+
+    if (isVisible && campaign.creator_id && campaign.creator_id !== auth.userId) {
+      createNotificationForUser({
+        target_user_id: campaign.creator_id,
+        title: `Nuovo commento su "${campaign.title}"`.slice(0, 128),
+        text: `${authorName}: ${input.text}`,
+        href: commentHref,
+      }).catch(() => null);
+    }
+  }
 
   return comment;
 }

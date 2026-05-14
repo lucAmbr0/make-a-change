@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import styles from './ProfileChip.module.css';
 import { Icon } from "@iconify/react";
 import { useUser } from '@/app/components/logic/UserProvider';
+import { apiFetch } from '@/lib/api/client';
 import LoginModal from "@/app/components/ui/LoginModal/LoginModal";
 import JoinOrganizationModal from "@/app/components/ui/Modal/JoinOrganizationModal/JoinOrganizationModal";
 
@@ -13,12 +15,21 @@ const MOBILE_QUERY = '(max-width: 1024px)';
 
 export default function Profile() {
     const { user, isLoading } = useUser();
+    const pathname = usePathname();
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isJoinOrgOpen, setIsJoinOrgOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [portalElement, setPortalElement] = useState<Element | null>(null);
+    const [unreadCount, setUnreadCount] = useState(0);
     const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (!user) { setUnreadCount(0); return; }
+        apiFetch<Array<{ is_read: boolean | number }>>("/api/notification", { method: "GET" })
+            .then((data) => setUnreadCount(data.filter((n) => !n.is_read).length))
+            .catch(() => {});
+    }, [user, pathname]);
 
     useEffect(() => {
         setPortalElement(document.body);
@@ -106,6 +117,10 @@ export default function Profile() {
             <Link href={`/utente/${user?.id}`} className={styles.menuItem} onClick={closeMenu}>
                 <Icon icon="material-symbols:person-outline" className={styles.menuIcon} fontSize={"20px"} />
                 <span>Profilo</span>
+            </Link>
+            <Link href={`/utente/notifiche`} className={styles.menuItem} onClick={closeMenu}>
+                <Icon icon={unreadCount > 0 ? "material-symbols:notifications-active" : "material-symbols:notifications-outline"} className={styles.menuIcon} fontSize={"20px"} />
+                <span>{unreadCount > 0 ? `Notifiche [${unreadCount}]` : "Notifiche"}</span>
             </Link>
             <Link href="/campagne/crea" className={styles.menuItem} onClick={closeMenu}>
                 <Icon icon="material-symbols:campaign-outline" className={styles.menuIcon} fontSize={"20px"} />
