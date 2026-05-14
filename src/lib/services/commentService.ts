@@ -20,6 +20,7 @@ import {
   requireCommentDelete,
   requireCommentModeration,
 } from "../auth/permissions";
+import { getMember } from "./memberService";
 import { parseBody } from "../api/body";
 import { decorateComments } from "./permissionsDecorator";
 
@@ -57,7 +58,16 @@ export async function createComment(ctx: RequestCtx, campaignId: number) {
     });
   }
 
-  const isVisible = !campaign.comments_require_approval;
+  let isVisible = !campaign.comments_require_approval;
+
+  if (!isVisible) {
+    const isCampaignOwner = campaign.creator_id === auth.userId;
+    const memberRecord = campaign.organization_id
+      ? await getMember(auth.userId, campaign.organization_id).catch(() => null)
+      : null;
+    const isOrgPrivileged = !!(memberRecord?.is_moderator || memberRecord?.is_owner);
+    if (isCampaignOwner || isOrgPrivileged) isVisible = true;
+  }
 
   const comment: commentRowSchema = await insertComment({
     user_id: auth.userId,

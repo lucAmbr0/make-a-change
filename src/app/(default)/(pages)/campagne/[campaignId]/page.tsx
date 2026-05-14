@@ -14,6 +14,7 @@ import Title from "@/app/components/ui/Typography/Title/Title";
 import { campaignResponseSchema } from "@/lib/schemas/campaigns";
 import { notFound } from "next/navigation";
 import CommentBox from "@/app/components/ui/CommentBox/CommentBox";
+import PendingCommentBox from "@/app/components/ui/PendingCommentBox/PendingCommentBox";
 import {
     authGetCampaign,
     getCampaignsFromSameOrganization,
@@ -179,17 +180,30 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                     <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />
                 </div>
                 <div className={styles.commentsContainer}>
-                    {comments.map((comment) => (
-                        <CommentBox
-                            key={comment.id}
-                            authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
-                            commentText={comment.text}
-                            commentId={comment.id}
-                            authorId={comment.user_id}
-                            campaignId={parsedCampaignId}
-                            canDelete={comment.permissions?.can_delete ?? false}
-                        />
-                    ))}
+                    {comments.map((comment) =>
+                        !comment.visible && comment.permissions?.can_moderate ? (
+                            <PendingCommentBox
+                                key={comment.id}
+                                commentId={comment.id}
+                                campaignId={parsedCampaignId}
+                                authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
+                                authorId={comment.user_id}
+                                commentText={comment.text}
+                                commentDatetime={comment.created_at?.toISOString()}
+                            />
+                        ) : (
+                            <CommentBox
+                                key={comment.id}
+                                authorName={`${comment.user_first_name || ""} ${comment.user_last_name || ""}`.trim() || "Anonimo"}
+                                commentText={comment.text}
+                                commentId={comment.id}
+                                authorId={comment.user_id}
+                                campaignId={parsedCampaignId}
+                                canDelete={comment.permissions?.can_delete ?? false}
+                                commentDatetime={comment.created_at?.toISOString()}
+                            />
+                        )
+                    )}
                 </div>
             </PageSection>
         ) : null}

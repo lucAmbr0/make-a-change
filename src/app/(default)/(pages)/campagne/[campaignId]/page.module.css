@@ -9,6 +9,45 @@
     margin-top: auto;
 }
 
+.campaignSummaryContainer {
+    display: grid;
+    align-items: stretch;
+    grid-template-columns: minmax(0, 660px) auto;
+    gap: 40px;
+    margin: 100px 10%;
+    overflow: hidden;
+}
+
+.campaignSummaryImageContainer {
+    width: 100%;
+    max-width: 660px;
+    aspect-ratio: 660 / 400;
+    height: auto;
+    border-radius: 32px;
+    border: solid 1px var(--accent-300);
+    overflow: hidden;
+    display: block;
+}
+
+.campaignSummaryImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 32px;
+}
+
+.campaignSummaryTextContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 0;
+    height: 100%;
+}
+
+.campaignInfoBodyContainer {
+    margin: 100px 10%;
+}
+
 .organizationCardContainer {
     display: flex;
 }
@@ -63,5 +102,28 @@
     .addCommentBox {
         width: 100%;
         max-width: 100%;
+    }
+
+    .campaignSummaryContainer {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        margin: 32px 10px;
+    }
+
+    .campaignSummaryImageContainer {
+        max-width: 100%;
+        border-radius: 12px;
+    }
+
+    .campaignSummaryImage {
+        border-radius: 12px;
+    }
+
+    .campaignSummaryTextContainer {
+        padding: 0;
+    }
+
+    .campaignInfoBodyContainer {
+        margin: 36px 10px;
     }
 }

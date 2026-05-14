@@ -277,14 +277,18 @@ export async function updateCommentVisibilityByIdInCampaign(data: {
   visible: boolean;
 }) {
   try {
-    const rows = await query<commentRowSchema>(
+    await query(
       `
       UPDATE comments
       SET visible = ?
       WHERE id = ? AND campaign_id = ?
-      RETURNING *
       `,
       [data.visible, data.comment_id, data.campaign_id],
+    );
+
+    const rows = await query<commentRowSchema>(
+      `SELECT * FROM comments WHERE id = ? AND campaign_id = ?`,
+      [data.comment_id, data.campaign_id],
     );
 
     if (!rows || rows.length === 0) {

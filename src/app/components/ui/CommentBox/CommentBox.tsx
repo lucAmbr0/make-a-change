@@ -18,6 +18,7 @@ export default function CommentBox({
     authorId,
     campaignId,
     canDelete,
+    commentDatetime,
 }: {
     authorName?: string;
     commentText: string;
@@ -25,6 +26,7 @@ export default function CommentBox({
     authorId: number;
     campaignId: number;
     canDelete: boolean;
+    commentDatetime?: string;
 }) {
     const { user } = useUser();
     const router = useRouter();
@@ -63,7 +65,14 @@ export default function CommentBox({
         <>
             <div className={`${styles.container} ${containerClassName}`}>
                 <div className={styles.headerRow}>
-                    <Link className={styles.authorName} href={`/utente/${authorId}`}><Icon icon={"material-symbols:account-circle-outline"} />{authorName || "Anonimo"}</Link>
+                    <div>
+                        <Link className={styles.authorName} href={`/utente/${authorId}`}><Icon icon={"material-symbols:account-circle-outline"} />{authorName || "Anonimo"}</Link>
+                        {commentDatetime && (
+                            <time className={styles.datetime} dateTime={commentDatetime}>
+                                {new Date(commentDatetime).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" })}
+                            </time>
+                        )}
+                    </div>
                     {canDelete && (
                         <button
                             className={styles.deleteButton}
