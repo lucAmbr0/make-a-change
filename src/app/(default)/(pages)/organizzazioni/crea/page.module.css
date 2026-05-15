@@ -1,0 +1,67 @@
+.pageContainer {
+    margin: 0 10%;
+}
+
+.formSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+.buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.error {
+    color: #d41f1f;
+    font-size: 12px;
+    margin: 5px 0 0 0;
+    padding: 0;
+}
+
+.apiError {
+    color: #d41f1f;
+    font-size: 14px;
+    margin: 0 0 20px 0;
+    padding: 12px;
+    background-color: #ffe6e6;
+    border: 1px solid #d41f1f;
+    border-radius: 4px;
+    text-align: center;
+}
+
+
+@media (max-width: 768px) {
+    .pageContainer {
+        margin: 0 16px;
+    }
+
+    .formSection {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 24px;
+        margin-bottom: 36px;
+    }
+
+    .fullWidth {
+        grid-column: auto;
+    }
+
+    .buttonGroup {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .buttonGroup > * {
+        width: 100%;
+    }
+}

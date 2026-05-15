@@ -1,0 +1,35 @@
+.hr {
+    border: solid 1px var(--accent-900);
+    width: 40%;
+    margin: 50px auto;
+}
+
+.descContainer {
+    display: grid;
+    width: 70%;
+    grid-template-columns: 2fr 3fr;
+    margin: 0 auto;
+    gap: 50px;
+}
+
+.heroImg {
+    border: solid 2px var(--accent-300);
+    border-radius: 24px;
+    /* to fix animation */
+    /* transition: transform 0.35s ease;
+    transform-origin: center center;
+    will-change: transform;
+    overflow: hidden;
+    display: block; */
+}
+
+.heroImg:hover {
+    /* transform: scale(1.10); */
+}
+
+.stepsContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+}

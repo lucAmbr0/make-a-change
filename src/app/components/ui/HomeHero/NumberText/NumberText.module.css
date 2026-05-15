@@ -1,0 +1,46 @@
+.container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.numberContainer {
+    background-color: var(--accent-200);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.number {
+    font-size: 28px;
+    color: var(--accent-950);
+    font-family: var(--font-inter);
+    margin: 0;
+}
+
+.numberFinal {
+    color: var(--accent-200);
+    font-weight: 600;
+}
+
+.numberContainerFinal {
+    margin-top: 20px;
+    background-color: var(--accent-700);
+}
+
+.text {
+    font-family: var(--font-inter);
+    color: var(--accent-950);
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.textFinal {
+    margin-top: 20px;
+    font-weight: 700;
+}
