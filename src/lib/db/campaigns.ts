@@ -850,3 +850,39 @@ export async function deleteCampaign(data: { id: number }) {
     });
   }
 }
+
+export interface GlobalStats {
+  users_count: number;
+  signatures_count: number;
+  organizations_count: number;
+  active_campaigns_count: number;
+  comments_count: number;
+}
+
+export async function getGlobalStats(): Promise<GlobalStats> {
+  try {
+    const rows = await query<GlobalStats>(
+      `
+      SELECT
+        (SELECT COUNT(*) FROM users) AS users_count,
+        (SELECT COUNT(*) FROM signatures) AS signatures_count,
+        (SELECT COUNT(*) FROM organizations) AS organizations_count,
+        (SELECT COUNT(*) FROM campaigns WHERE is_archived = 0 OR is_archived IS NULL) AS active_campaigns_count,
+        (SELECT COUNT(*) FROM comments) AS comments_count
+      `,
+    );
+    return rows[0];
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in getGlobalStats:", error);
+      throw new InternalServerError("Failed to get global stats.", {
+        operation: "getGlobalStats",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in getGlobalStats:", error);
+    throw new InternalServerError("Failed to retrieve global stats from database", {
+      operation: "getGlobalStats",
+    });
+  }
+}

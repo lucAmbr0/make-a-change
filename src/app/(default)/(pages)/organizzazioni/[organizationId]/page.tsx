@@ -99,6 +99,8 @@ export default async function Page({ params }: { params: Promise<{ organizationI
                     organizationId={parsedId}
                     initialState={joinState}
                     requiresApproval={organization.requires_approval}
+                    isPublic={organization.is_public}
+                    isAuthenticated={auth.userId !== null}
                 />
                 <Button text="Condividi" icon="share" type="outlined" />
             </div>

@@ -61,7 +61,7 @@ export default function Profile() {
     }, [isMenuOpen]);
 
     const fullName = user ? `${user.first_name} ${user.last_name}` : '';
-    const chipText = isLoading ? "..." : user ? fullName : "Accedi";
+    const chipText = isLoading ? "..." : user ? fullName : "Accedi o Registrati";
 
     function handleClick() {
         if (!user && !isLoading) {

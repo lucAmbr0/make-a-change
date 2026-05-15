@@ -6,11 +6,13 @@ export default function HomeHero() {
     return <>
         <div className={styles.container}>
             <div>
-                <Title text="Crea il cambiamento" alignment="center" />
+                <Title text="Crea il cambiamento" hierarchy={1} alignment="center" />
                 <hr className={styles.hr} />
             </div>
             <div className={styles.descContainer}>
-                <img src={"/democrazia.jpg"} alt="Urna con voti" className={styles.heroImg} />
+                <div className={styles.heroImageContainer}>
+                    <img src={"/democrazia.jpg"} alt="Urna con voti" className={styles.heroImg} />
+                </div>
                 <div className={styles.stepsContainer}>
                     <NumberText number={1} text={"Unisciti a un'organizzazione o crea la tua"} />
                     <NumberText number={2} text={"Pubblica la tua iniziativa con un’organizzazione o da indipendente"} />

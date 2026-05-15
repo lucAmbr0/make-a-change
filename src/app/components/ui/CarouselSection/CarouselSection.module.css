@@ -1,0 +1,29 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.headerContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.headerButton {
+    position: absolute;
+    right: 0;
+}
+
+@media (max-width: 768px) {
+    .headerContainer {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .headerButton {
+        position: static;
+        align-self: center;
+    }
+}

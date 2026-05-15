@@ -6,25 +6,32 @@
 
 .descContainer {
     display: grid;
-    width: 70%;
-    grid-template-columns: 2fr 3fr;
+    width: 65%;
+    grid-template-columns: 2fr auto;
     margin: 0 auto;
     gap: 50px;
 }
 
 .heroImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     border: solid 2px var(--accent-300);
-    border-radius: 24px;
-    /* to fix animation */
-    /* transition: transform 0.35s ease;
+    display: block;
+    transition: transform 0.35s ease;
     transform-origin: center center;
     will-change: transform;
-    overflow: hidden;
-    display: block; */
 }
 
 .heroImg:hover {
-    /* transform: scale(1.10); */
+    transform: scale(1.10);
+}
+
+.heroImageContainer {
+    border: solid 2px var(--accent-300);
+    border-radius: 24px;
+    overflow: hidden;
+    display: block;
 }
 
 .stepsContainer {
@@ -32,4 +39,25 @@
     flex-direction: column;
     justify-content: center;
     gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .hr {
+        width: 60%;
+        margin: 30px auto;
+    }
+
+    .descContainer {
+        width: 90%;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .heroImageContainer {
+        max-height: 220px;
+    }
+
+    .heroImg {
+        max-height: 220px;
+    }
 }

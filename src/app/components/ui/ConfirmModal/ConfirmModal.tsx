@@ -35,8 +35,8 @@ export default function ConfirmModal({
         <h3 className={styles.title}>{title}</h3>
         {description ? <p className={styles.description}>{description}</p> : null}
         <div className={styles.actions}>
-          <Button text={cancelLabel} onClick={onClose} type="outlined" textSize={16} />
-          <Button text={confirmLabel} onClick={onConfirm} type="filled" textSize={16} />
+          <Button text={cancelLabel} onClick={onClose} type="outlined" textSize={18} />
+          <Button text={confirmLabel} onClick={onConfirm} type="filled" textSize={18} />
         </div>
       </div>
     </Modal>

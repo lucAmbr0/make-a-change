@@ -2,7 +2,7 @@
     padding: 20px 0px;
     border-radius: 12px;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(var(--stats-columns, 3), 1fr);
 }
 
 .containerBackground {

@@ -106,7 +106,7 @@ export default async function EditPage({
                         campaignId={parsedCampaignId}
                         field="comments_require_approval"
                         initialValue={campaign.comments_require_approval}
-                        label="I commenti richiedono approvazione"
+                        label="Trattieni i commenti per l'approvazione"
                         labelClassName={styles.toggleLabel}
                         inputClassName={styles.toggleCheckbox}
                         errorClassName={styles.toggleError}
