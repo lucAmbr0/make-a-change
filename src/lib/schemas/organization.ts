@@ -90,6 +90,17 @@ export const createOrganizationInput = zod.object({
 
 export type createOrganizationInput = zod.infer<typeof createOrganizationInput>;
 
+export const updateOrganizationInput = zod.object({
+  name: zod.string().min(1).max(64).trim().optional(),
+  description: zod.string().max(65535).nullable().optional(),
+  category: zod.string().max(64).nullable().optional(),
+  cover_path: zod.string().max(2048).nullable().optional(),
+  is_public: zod.boolean().optional(),
+  requires_approval: zod.boolean().optional(),
+});
+
+export type updateOrganizationInput = zod.infer<typeof updateOrganizationInput>;
+
 export const organizationNameSchema = zod.object({
   name: zod
     .string({ message: "Name must be a string" })

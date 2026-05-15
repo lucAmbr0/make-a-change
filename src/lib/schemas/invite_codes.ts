@@ -11,12 +11,16 @@ export const inviteCodeRowSchema = zod.object({
 export type inviteCodeRowSchema = zod.infer<typeof inviteCodeRowSchema>;
 
 export const createInviteCodeInput = zod.object({
+  code: zod
+    .string()
+    .regex(/^[A-Z0-9]{6}$/, "Code must be 6 uppercase alphanumeric characters")
+    .optional(),
   uses: zod
     .number({ message: "Uses is required" })
     .int("Uses must be an integer")
     .positive("Uses must be a positive number"),
   expires_at: zod
-    .date("Expire date must be a valid date")
+    .coerce.date()
     .nullable()
     .optional(),
 });

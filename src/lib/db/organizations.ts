@@ -472,3 +472,51 @@ export async function getOrganizationsForMemberForViewer(data: {
     );
   }
 }
+
+const UPDATABLE_ORG_COLUMNS = [
+  "name",
+  "description",
+  "category",
+  "cover_path",
+  "is_public",
+  "requires_approval",
+] as const;
+
+type UpdatableOrgColumn = (typeof UPDATABLE_ORG_COLUMNS)[number];
+
+export async function updateOrganization(data: {
+  id: number;
+  fields: Partial<Record<UpdatableOrgColumn, unknown>>;
+}) {
+  const entries = Object.entries(data.fields).filter(([key]) =>
+    (UPDATABLE_ORG_COLUMNS as readonly string[]).includes(key),
+  );
+
+  if (entries.length === 0) {
+    throw new InternalServerError("No valid fields provided for update", {
+      operation: "updateOrganization",
+    });
+  }
+
+  const setClause = entries.map(([key]) => `${key} = ?`).join(", ");
+  const values = entries.map(([, value]) => value as never);
+
+  try {
+    await query(
+      `UPDATE organizations SET ${setClause} WHERE id = ?`,
+      [...values, data.id],
+    );
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in updateOrganization:", error);
+      throw new InternalServerError("Failed to update organization.", {
+        operation: "updateOrganization",
+        dbCode: error.code,
+      });
+    }
+    console.error("Unexpected error in updateOrganization:", error);
+    throw new InternalServerError("Failed to update organization in database", {
+      operation: "updateOrganization",
+    });
+  }
+}

@@ -181,19 +181,23 @@ export async function updateMemberModerator(data: {
   is_moderator: boolean;
 }) {
   try {
-    const rows = await query<memberRowSchema>(
+    await query(
       `
       UPDATE members
       SET is_moderator = ?
       WHERE user_id = ? AND organization_id = ?
-      RETURNING *
       `,
       [data.is_moderator ? 1 : 0, data.user_id, data.organization_id],
     );
 
+    const rows = await query<memberRowSchema>(
+      `SELECT * FROM members WHERE user_id = ? AND organization_id = ?`,
+      [data.user_id, data.organization_id],
+    );
+
     if (!rows || rows.length === 0) {
       throw new InternalServerError(
-        "Member update failed: no rows returned",
+        "Member update failed: member not found after update",
         { operation: "updateMemberModerator" },
       );
     }

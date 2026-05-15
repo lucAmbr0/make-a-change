@@ -8,6 +8,7 @@ import {
   insertOrganization,
   deleteOrganization,
   getAllPublicOrganizationsWithCounts,
+  updateOrganization,
 } from "../db/organizations";
 import { NotFoundError, ValidationError } from "../errors/ApiError";
 import { memberRowSchema } from "../schemas/members";
@@ -16,9 +17,10 @@ import {
   organizationNameSchema,
   organizationResponseSchema,
   organizationRowSchema,
+  updateOrganizationInput,
 } from "../schemas/organization";
 import { parseBody } from "../api/body";
-import { requireOrganizationDelete } from "../auth/permissions";
+import { requireOrganizationDelete, requireOrganizationModeratorOrOwner } from "../auth/permissions";
 
 export async function createOrganization(ctx: RequestCtx) {
   const auth = requireAuthCtx(ctx);
@@ -104,4 +106,27 @@ export async function authDeleteOrganization(
 
   await deleteOrganization({ organization_id: organizationId });
   return true;
+}
+
+export async function authUpdateOrganization(
+  ctx: RequestCtx,
+  organizationId: number,
+) {
+  const auth = requireAuthCtx(ctx);
+
+  const organization = await getOrganization({
+    user_id: auth.userId,
+    organization_id: organizationId,
+  });
+
+  if (!organization) {
+    throw new NotFoundError("Organization not found.");
+  }
+
+  await requireOrganizationModeratorOrOwner(auth.userId, organizationId, ctx);
+
+  const input = await parseBody(ctx, updateOrganizationInput);
+  await updateOrganization({ id: organizationId, fields: input });
+
+  return await getOrganization({ user_id: auth.userId, organization_id: organizationId });
 }

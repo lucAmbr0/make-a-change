@@ -17,6 +17,7 @@ import { memberRowSchema } from "../schemas/members";
 import { organizationRowSchema } from "../schemas/organization";
 import { addMemberForUser, getMember } from "./memberService";
 import { parseBody } from "../api/body";
+import { createNotificationForOrganizationModerators } from "./notificationService";
 
 export type joinOrganizationResult =
   | { type: "member"; member: memberRowSchema }
@@ -113,6 +114,13 @@ export async function joinOrganization(
     });
 
     if (inviteCode) await decrementInviteCodeUses({ id: inviteCode.id });
+
+    createNotificationForOrganizationModerators({
+      organization_id: organization.id,
+      title: `Nuova richiesta di adesione`,
+      text: `Un utente ha richiesto di entrare in ${organization.name}. Vai alla pagina di gestione membri per accettare o rifiutare la richiesta.`,
+      href: `/organizzazioni/${organization.id}/members`,
+    }).catch(() => null);
 
     return { type: "approval_request", approvalRequest };
   }

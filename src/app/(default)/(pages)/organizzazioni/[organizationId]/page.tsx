@@ -1,6 +1,7 @@
 import styles from "./page.module.css";
 import { resolveCoverSrc } from "@/app/components/logic/coverImage";
 import Button from "@/app/components/ui/Button/Button";
+import Banner from "@/app/components/ui/Banner/Banner";
 import CampaignCard from "@/app/components/ui/CampaignCard/CampaignCard";
 import Carousel from "@/app/components/ui/Carousel/Carousel";
 import DetailHero from "@/app/components/ui/DetailHero/DetailHero";
@@ -75,6 +76,8 @@ export default async function Page({ params }: { params: Promise<{ organizationI
             ? 'requested'
             : 'idle';
 
+    const canManage = !!(memberRecord?.is_moderator || memberRecord?.is_owner);
+
     const campaignCards = campaigns.map((campaign) => (
         <CampaignCard key={campaign.id} campaign={campaign} href={`/campagne/${campaign.id}`} />
     ));
@@ -84,6 +87,29 @@ export default async function Page({ params }: { params: Promise<{ organizationI
         .join(" ") || "Anonimo";
 
     return <>
+        {canManage && (
+            <Banner
+                primaryLabel={memberRecord?.is_owner ? "Sei proprietario di questa organizzazione." : "Sei moderatore di questa organizzazione."}
+                actions={
+                    <div style={{ display: "flex", gap: "8px" }}>
+                        <Button
+                            href={`/organizzazioni/${parsedId}/edit`}
+                            text="Modifica organizzazione"
+                            icon="edit"
+                            type="outlined"
+                            textSize={18}
+                        />
+                        <Button
+                            href={`/organizzazioni/${parsedId}/members`}
+                            text="Gestisci membri"
+                            icon="material-symbols:group-outline"
+                            type="outlined"
+                            textSize={18}
+                        />
+                    </div>
+                }
+            />
+        )}
         <DetailHero imageSrc={resolveCoverSrc(organization.cover_path)} imageAlt={`Immagine di ${organization.name}`}>
             <h1>{organization.name}</h1>
             {organization.category && <h2>{organization.category}</h2>}

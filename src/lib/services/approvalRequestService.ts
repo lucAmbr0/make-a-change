@@ -16,6 +16,7 @@ import { authGetOrganization } from "./organizationService";
 import { addMemberForUser } from "./memberService";
 import { requireOrganizationModeratorOrOwner } from "../auth/permissions";
 import { parseBody } from "../api/body";
+import { createNotificationForUser } from "./notificationService";
 
 export type resolveApprovalRequestResult =
   | { type: "approved"; member: memberRowSchema }
@@ -68,6 +69,15 @@ export async function resolveApprovalRequest(
       user_id: userId,
       organization_id: organizationId,
     });
+
+    const org = await authGetOrganization(ctx, organizationId);
+    createNotificationForUser({
+      target_user_id: userId,
+      title: `Richiesta accettata`,
+      text: `La tua richiesta di entrare in ${org.name} è stata accettata. Benvenuto!`,
+      href: `/organizzazioni/${organizationId}`,
+    }).catch(() => null);
+
     return { type: "approved", member };
   }
 

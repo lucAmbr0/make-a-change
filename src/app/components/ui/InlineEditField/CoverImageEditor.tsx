@@ -9,7 +9,8 @@ import { useApiAction } from "@/lib/api/useApiAction";
 import ImagePreviewModal from "@/app/components/ui/Modal/ImagePreviewModal/ImagePreviewModal";
 
 interface CoverImageEditorProps {
-    campaignId: number;
+    campaignId?: number;
+    apiPath?: string;
     initialValue: string | null;
     src: string;
     alt?: string;
@@ -18,6 +19,7 @@ interface CoverImageEditorProps {
 
 export default function CoverImageEditor({
     campaignId,
+    apiPath,
     initialValue,
     src,
     alt = "Immagine campagna",
@@ -30,9 +32,11 @@ export default function CoverImageEditor({
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const probeRef = useRef<HTMLImageElement | null>(null);
 
+    const endpoint = apiPath ?? `/api/campaign/${campaignId}`;
+
     const save = useApiAction(
         async (value: string | null) =>
-            apiFetch(`/api/campaign/${campaignId}`, {
+            apiFetch(endpoint, {
                 method: "PATCH",
                 body: { cover_path: value },
             }),

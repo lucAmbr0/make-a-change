@@ -6,7 +6,8 @@ import { apiFetch } from "@/lib/api/client";
 import { useApiAction } from "@/lib/api/useApiAction";
 
 interface InlineToggleFieldProps {
-    campaignId: number;
+    campaignId?: number;
+    apiPath?: string;
     field: string;
     initialValue: boolean;
     label: string;
@@ -17,6 +18,7 @@ interface InlineToggleFieldProps {
 
 export default function InlineToggleField({
     campaignId,
+    apiPath,
     field,
     initialValue,
     label,
@@ -27,9 +29,11 @@ export default function InlineToggleField({
     const router = useRouter();
     const [optimistic, setOptimistic] = useState(initialValue);
 
+    const endpoint = apiPath ?? `/api/campaign/${campaignId}`;
+
     const save = useApiAction(
         async (value: boolean) =>
-            apiFetch(`/api/campaign/${campaignId}`, {
+            apiFetch(endpoint, {
                 method: "PATCH",
                 body: { [field]: value },
             }),

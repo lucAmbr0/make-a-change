@@ -9,7 +9,8 @@ import { useApiAction } from "@/lib/api/useApiAction";
 type FieldKind = "text" | "textarea" | "number";
 
 interface InlineEditFieldProps {
-    campaignId: number;
+    campaignId?: number;
+    apiPath?: string;
     field: string;
     initialValue: string | number | null;
     kind?: FieldKind;
@@ -33,6 +34,7 @@ function coerceForSubmit(kind: FieldKind, raw: string): string | number | null {
 
 export default function InlineEditField({
     campaignId,
+    apiPath,
     field,
     initialValue,
     kind = "text",
@@ -46,9 +48,11 @@ export default function InlineEditField({
         initialValue === null || initialValue === undefined ? "" : String(initialValue),
     );
 
+    const endpoint = apiPath ?? `/api/campaign/${campaignId}`;
+
     const save = useApiAction(
         async (value: string | number | null) =>
-            apiFetch(`/api/campaign/${campaignId}`, {
+            apiFetch(endpoint, {
                 method: "PATCH",
                 body: { [field]: value },
             }),

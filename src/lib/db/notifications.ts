@@ -175,6 +175,56 @@ export async function insertNotificationsForOrganization(data: {
   }
 }
 
+export async function insertNotificationsForOrganizationModerators(data: {
+  organization_id: number;
+  title: string;
+  text: string;
+  is_read?: boolean | null;
+  href?: string | null;
+}) {
+  try {
+    const writeMeta = getWriteMeta(
+      await query<unknown>(
+      `
+      INSERT INTO notifications
+        (
+          target_user_id,
+          title,
+          text,
+          is_read,
+          href
+        )
+      SELECT m.user_id, ?, ?, ?, ?
+      FROM members m
+      WHERE m.organization_id = ? AND (m.is_moderator = 1 OR m.is_owner = 1)
+      `,
+      [data.title, data.text, data.is_read ? 1 : 0, data.href ?? null, data.organization_id],
+      ),
+    );
+
+    return buildCountOnlyRows(
+      writeMeta.affectedRows,
+      data.title,
+      data.text,
+      Boolean(data.is_read),
+      data.href,
+    );
+  } catch (error) {
+    if (error instanceof DBError) {
+      console.error("Database error in insertNotificationsForOrganizationModerators:", error);
+      throw new InternalServerError(
+        "Failed to insert notifications for organization moderators",
+        { operation: "insertNotificationsForOrganizationModerators", dbCode: error.code },
+      );
+    }
+    console.error("Unexpected error in insertNotificationsForOrganizationModerators:", error);
+    throw new InternalServerError(
+      "Failed to insert notifications for organization moderators",
+      { operation: "insertNotificationsForOrganizationModerators" },
+    );
+  }
+}
+
 export async function deleteNotification(data: { id: number }) {
   try {
     await query(

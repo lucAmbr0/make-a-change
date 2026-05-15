@@ -18,6 +18,7 @@ import {
   deleteAllNotificationsForUser,
   insertNotificationOnUser,
   insertNotificationsForOrganization,
+  insertNotificationsForOrganizationModerators,
   insertNotificationsForCampaignSigners,
   insertNotificationsForAllUsers,
 } from "../db/notifications";
@@ -132,6 +133,21 @@ export async function createNotificationForOrganization(data: {
   href?: string | null;
 }) {
   return await insertNotificationsForOrganization({
+    organization_id: data.organization_id,
+    title: data.title,
+    text: data.text,
+    is_read: false,
+    href: data.href,
+  });
+}
+
+export async function createNotificationForOrganizationModerators(data: {
+  organization_id: number;
+  title: string;
+  text: string;
+  href?: string | null;
+}) {
+  return await insertNotificationsForOrganizationModerators({
     organization_id: data.organization_id,
     title: data.title,
     text: data.text,

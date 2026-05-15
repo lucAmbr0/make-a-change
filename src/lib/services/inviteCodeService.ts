@@ -68,7 +68,14 @@ export async function createInviteCode(
 
   const input = await parseBody(ctx, createInviteCodeInput);
 
-  const code = await generateUniqueInviteCode();
+  let code: string;
+  if (input.code) {
+    const exists = await inviteCodeExists({ code: input.code });
+    if (exists) throw new ValidationError("Invite code already in use.", { code: input.code });
+    code = input.code;
+  } else {
+    code = await generateUniqueInviteCode();
+  }
   const expiresAt = input.expires_at ? new Date(input.expires_at) : null;
 
   const inviteCode: inviteCodeRowSchema = await insertInviteCode({
