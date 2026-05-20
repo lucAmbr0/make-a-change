@@ -85,7 +85,7 @@ export default async function Page({ params }: { params: Promise<{ userId: strin
     ));
 
     const organizationCardItems = organizations.map((organization) => (
-        <OrganizationCard key={organization.id} organization={organization} />
+        <OrganizationCard key={organization.id} organization={organization} href={`/organizzazioni/${organization.id}`} />
     ));
 
     const stats = [

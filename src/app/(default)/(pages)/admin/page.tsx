@@ -1146,8 +1146,25 @@ export default function AdminControlPanelPage(): ReactElement {
 
     const payload = JSON.stringify(response, null, 2);
     try {
-      await navigator.clipboard.writeText(payload);
-      setCardError(endpointId, "Copied response payload to clipboard.");
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(payload);
+        setCardError(endpointId, "Copied response payload to clipboard.");
+      } else {
+        // Fallback to execCommand copy
+        const textarea = document.createElement('textarea');
+        textarea.value = payload;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (successful) {
+          setCardError(endpointId, "Copied response payload to clipboard.");
+        } else {
+          setCardError(endpointId, "Copy failed: clipboard unavailable");
+        }
+      }
       window.setTimeout(() => clearCardError(endpointId), 1400);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Clipboard unavailable";
