@@ -87,7 +87,21 @@ Comments, favorites and social media integrations make it easy for you to reach 
 
 # 📸 Screenshots
 
-*(UI preview – homepage)*
+Below are a few UI screenshots (click any image to view full size).
+
+<table>
+    <tr>
+        <td><img src="public/screenshots/desktop-1.png" alt="Screenshot 1" width="320" style="border-radius:8px;"/></td>
+        <td><img src="public/screenshots/desktop-2.png" alt="Screenshot 2" width="320" style="border-radius:8px;"/></td>
+        <td><img src="public/screenshots/desktop-3.png" alt="Screenshot 3" width="320" style="border-radius:8px;"/></td>
+    </tr>
+    <tr>
+        <td><img src="public/screenshots/desktop-4.png" alt="Screenshot 4" width="320" style="border-radius:8px;"/></td>
+        <td><img src="public/screenshots/desktop-5.png" alt="Screenshot 5" width="320" style="border-radius:8px;"/></td>
+        <td><img src="public/screenshots/desktop-6.png" alt="Screenshot 6" width="320" style="border-radius:8px;"/></td>
+    </tr>
+</table>
+
 
 ---
 
