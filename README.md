@@ -1,7 +1,7 @@
 # Make-A-Change
 
 [![wakatime](https://wakatime.com/badge/github/lucAmbr0/make-a-change.svg)](https://wakatime.com/badge/github/lucAmbr0/make-a-change)
-![Status](https://img.shields.io/badge/status-in%20development-orange)
+![Status](https://img.shields.io/badge/status-maintained-green)
 ![License](https://img.shields.io/badge/license-GNU%20GPL%20v3.0-yellow)
 ![Lines of Code](https://img.shields.io/badge/lines-19.2k-blue)
 <!-- cloc src scripts -->
