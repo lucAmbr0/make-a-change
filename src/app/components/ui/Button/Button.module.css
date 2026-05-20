@@ -8,6 +8,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    align-self: center;
     text-decoration: none;
 }
 
@@ -17,7 +18,8 @@
 }
 
 .iconOnly {
-    padding: 8px;
+    aspect-ratio: 1 / 1;
+    padding: 12px;
     border-radius: 50%;
     line-height: 0;
 }

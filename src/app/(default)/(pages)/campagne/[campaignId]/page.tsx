@@ -28,8 +28,11 @@ import { Metadata } from "next";
 import Link from "next/link";
 import branding from "@/app/components/logic/branding";
 import Banner from "@/app/components/ui/Banner/Banner";
+import ShareButton from "@/app/components/ui/Modal/ShareCampaignModal/ShareButton";
 import { getOptionalAuth } from "@/lib/auth/auth";
 import { getMember } from "@/lib/services/memberService";
+import { repostExists } from "@/lib/db/reposts";
+import RepostCampaignButton from "@/app/components/ui/RepostCampaignButton/RepostCampaignButton";
 
 async function safeGetCampaign(campaignId: number) {
     const ctx = await getServerCtx();
@@ -95,6 +98,7 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
 
     let userRole = "";
     let userHasSigned = false;
+    let userHasReposted = false;
     if (auth.userId !== null) {
         if (campaign.creator_id === auth.userId) {
             userRole = "proprietario";
@@ -112,6 +116,11 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
             campaign_id: parsedCampaignId,
         }).catch(() => null);
         userHasSigned = !!userSignature;
+
+        userHasReposted = await repostExists({
+            user_id: auth.userId,
+            campaign_id: parsedCampaignId,
+        }).catch(() => false);
     }
 
     const showRoleBanner = userRole !== "" && campaign.permissions?.can_edit;
@@ -153,7 +162,13 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
                     isAuthenticated={auth.userId !== null}
                     isCreator={auth.userId !== null && campaign.creator_id === auth.userId}
                 />
-                <Button text="Condividi" icon="share" type="outlined" />
+                {auth.userId !== null && (
+                    <RepostCampaignButton
+                        campaignId={parsedCampaignId}
+                        initialReposted={userHasReposted}
+                    />
+                )}
+                <ShareButton title={campaign.title} />
             </div>
             <div className={styles.progressBar}>
                 <ProgressBar showLabel={true} unit="sostenitori" total={campaign.signature_goal || 0} current={campaign.signatures} />
@@ -178,7 +193,14 @@ export default async function Page({ params }: { params: Promise<{ campaignId: s
             <PageSection id="commenti">
                 <Title text="Commenti" hierarchy={2} />
                 <div className={styles.addCommentBox}>
-                    <AddCommentBox campaignId={parsedCampaignId} canComment={campaign.permissions?.can_comment ?? true} />
+                    {campaign.comments_require_approval ? (
+                        <p className={styles.commentsApprovalWarn}>Il tuo commento sarà pubblicato previa approvazione dei moderatori</p>
+                    ) : null}
+                    <AddCommentBox
+                        campaignId={parsedCampaignId}
+                        canComment={campaign.permissions?.can_comment ?? true}
+                        requiresApproval={!!campaign.comments_require_approval}
+                    />
                 </div>
                 <div className={styles.commentsContainer}>
                     {comments.map((comment) =>

@@ -80,6 +80,12 @@
     gap: 20px;
 }
 
+.commentsApprovalWarn {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--accent-950);
+}
+
 @media (max-width: 768px) {
     .progressBar {
         width: 100%;

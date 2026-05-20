@@ -10,6 +10,8 @@ export default function ConfirmModal({
   description,
   confirmLabel = "Conferma",
   cancelLabel = "Annulla",
+  confirmDisabled = false,
+  feedback,
   onConfirm,
   onClose,
 }: {
@@ -18,6 +20,8 @@ export default function ConfirmModal({
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmDisabled?: boolean;
+  feedback?: string;
   onConfirm: () => void;
   onClose: () => void;
 }) {
@@ -34,9 +38,10 @@ export default function ConfirmModal({
       <div className={styles.container}>
         <h3 className={styles.title}>{title}</h3>
         {description ? <p className={styles.description}>{description}</p> : null}
+        {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
         <div className={styles.actions}>
           <Button text={cancelLabel} onClick={onClose} type="outlined" textSize={18} />
-          <Button text={confirmLabel} onClick={onConfirm} type="filled" textSize={18} />
+          <Button text={confirmLabel} onClick={onConfirm} type="filled" textSize={18} disabled={confirmDisabled} />
         </div>
       </div>
     </Modal>

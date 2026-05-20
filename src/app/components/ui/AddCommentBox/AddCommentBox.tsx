@@ -11,9 +11,10 @@ import { useApiAction } from '@/lib/api/useApiAction';
 interface AddCommentBoxProps {
     campaignId: number;
     canComment?: boolean;
+    requiresApproval?: boolean;
 }
 
-export default function AddCommentBox({ campaignId, canComment = true }: AddCommentBoxProps) {
+export default function AddCommentBox({ campaignId, canComment = true, requiresApproval = false }: AddCommentBoxProps) {
     const { user } = useUser();
     const router = useRouter();
 
@@ -68,6 +69,7 @@ export default function AddCommentBox({ campaignId, canComment = true }: AddComm
                     if (submit.error) submit.reset();
                 }}
             />
+            
             <button className={styles.button} type="submit" disabled={disabled} aria-disabled={disabled}>
                 <Icon icon={"material-symbols:send-outline"} className={styles.icon} fontSize={32} width={32} height={32} />
             </button>

@@ -21,6 +21,7 @@ import { getMember } from "@/lib/services/memberService";
 import { getApprovalRequest } from "@/lib/db/approval_requests";
 import { Icon } from "@iconify/react";
 import JoinOrgButton, { JoinState } from "./JoinOrgButton";
+import ShareButton from "@/app/components/ui/Modal/ShareCampaignModal/ShareButton";
 
 async function safeGetOrganization(organizationId: number) {
     const ctx = await getServerCtx();
@@ -128,7 +129,7 @@ export default async function Page({ params }: { params: Promise<{ organizationI
                     isPublic={organization.is_public}
                     isAuthenticated={auth.userId !== null}
                 />
-                <Button text="Condividi" icon="share" type="outlined" />
+                <ShareButton title={organization.name} />
             </div>
             <div className={styles.statsContainer}>
                 <Icon icon="material-symbols:diversity-3" width="32" height="32" />
