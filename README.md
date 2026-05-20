@@ -25,6 +25,7 @@ Instead of ideas disappearing in small circles, this platform helps them reach t
 - [About the Project](#-about-the-project)
 - [Goals](#-goals)
 - [Key Features](#-key-features)
+- [Getting Started](#-getting-started)
 - [Screenshots](#-screenshots)
 - [Tech Stack](#️-tech-stack)
 - [Technical Architecture](#️-technical-architecture)
@@ -82,6 +83,102 @@ People living in a community such as schools, hobby clubs or sports teams can cr
 ### Scale your initiatives
 Comments, favorites and social media integrations make it easy for you to reach a wide target of people.
 
+
+---
+
+# 📐 Getting Started
+
+Follow these steps to set up and run Make-A-Change locally.
+
+### Prerequisites
+
+Ensure you have the following installed on your machine:
+
+- **Node.js** (v18 or higher)
+- **npm** or **pnpm**
+- **MariaDB Server** (or MySQL 5.7+)
+
+### Installation
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/lucAmbr0/make-a-change.git
+cd make-a-change
+```
+
+2. **Install dependencies:**
+
+```bash
+npm install
+```
+
+3. **Configure environment variables:**
+
+Create a `.env.local` file in the project root and add your database credentials:
+
+```env
+DATABASE_URL="mysql://root:password@localhost:3306/make_a_change"
+```
+
+Adjust the credentials and database name according to your MariaDB setup.
+
+### Database Setup
+
+1. **Start the MariaDB server:**
+
+On Windows:
+```bash
+mysqld --datadir="C:\Users\YourUsername\Documents\mariadb\data"
+```
+
+On macOS/Linux:
+```bash
+mysql.server start
+```
+
+2. **Connect to MariaDB and create the database:**
+
+```bash
+mariadb -u root -p
+```
+
+3. **Build the database schema and seed demo data:**
+
+```bash
+source scripts/dump-structure.sql;
+source scripts/seed_demo.sql;
+```
+
+4. **Hash seed passwords** (required if using demo data):
+
+```bash
+node scripts/hash_seed_passwords.js
+```
+
+### Build and Run
+
+1. **Build the application:**
+
+```bash
+npm run build
+```
+
+2. **Start the development server:**
+
+```bash
+npm run dev
+```
+
+Or for production:
+
+```bash
+npm run start
+```
+
+3. **Open your browser:**
+
+Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
 ---
 
